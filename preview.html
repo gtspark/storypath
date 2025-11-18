@@ -1090,7 +1090,7 @@
                                 </defs>
 
                                 <!-- Title text - will be animated with character-by-character stroke drawing -->
-                                <text id="flagText" class="flag-text" x="400" y="200" text-anchor="middle" font-size="48" font-weight="bold" font-family="'Fredoka', 'Chewy', cursive">${title}</text>
+                                <text id="flagText" class="flag-text" x="400" y="200" text-anchor="middle" font-size="48" font-weight="bold" font-family="'Fredoka', 'Chewy', cursive">${storyData.title}</text>
                             </svg>
                         </div>
                     `;
@@ -1106,7 +1106,7 @@
                 }
                 // SCI-FI KIDS: GLaDOS-style resolving text
                 else if (genre === 'scifi' && maturity === 'kids') {
-                    animationHTML = `<div class="title-reveal scifi-reveal-kids"><div class="resolve-text" id="titleText">${title}</div></div>`;
+                    animationHTML = `<div class="title-reveal scifi-reveal-kids"><div class="resolve-text" id="titleText" data-text="${storyData.title}"></div></div>`;
                 }
                 // HORROR ADULT: Flickering horror text
                 else if (genre === 'horror' && maturity === 'adult') {
@@ -1150,16 +1150,9 @@
 
                 // FANTASY KIDS FLAG ANIMATION
                 if (genre === 'fantasy' && maturity === 'kids') {
+                    // Split text into individual characters and animate stroke drawing
                     const flagText = document.getElementById('flagText');
                     if (flagText) {
-                        // Check if Japanese (has ruby tags) - skip character animation
-                        if (title.includes('<ruby>')) {
-                            // Japanese: just show flag with title, skip character-by-character
-                            setTimeout(() => showCurtainReveal(overlay, genre, maturity, resolve), 3000);
-                            return;
-                        }
-
-                        // English: Split text into individual characters and animate stroke drawing
                         const text = flagText.textContent;
 
                         // Create temporary canvas to measure text
@@ -1466,96 +1459,69 @@
                 // MYSTERY KIDS: Letter-by-letter reveal
                 else if (genre === 'mystery' && maturity === 'kids') {
                     const textEl = document.getElementById('titleText');
+                    const titleText = storyData.title;
+                    const letters = titleText.split('');
 
-                    // Check if Japanese (has ruby tags)
-                    if (title.includes('<ruby>')) {
-                        // Japanese: just show title with CSS animation
-                        textEl.innerHTML = title;
-                        setTimeout(() => showCurtainReveal(overlay, genre, maturity, resolve), 2000);
-                    } else {
-                        // English: character-by-character reveal
-                        const titleText = storyData.title;
-                        const letters = titleText.split('');
+                    // Create letter spans
+                    textEl.innerHTML = letters.map(letter =>
+                        `<span class="letter">${letter === ' ' ? '&nbsp;' : letter}</span>`
+                    ).join('');
 
-                        // Create letter spans
-                        textEl.innerHTML = letters.map(letter =>
-                            `<span class="letter">${letter === ' ' ? '&nbsp;' : letter}</span>`
-                        ).join('');
+                    // Animate letters with delay
+                    const letterSpans = textEl.querySelectorAll('.letter');
+                    letterSpans.forEach((span, index) => {
+                        span.style.animationDelay = `${index * 0.08}s`;
+                    });
 
-                        // Animate letters with delay
-                        const letterSpans = textEl.querySelectorAll('.letter');
-                        letterSpans.forEach((span, index) => {
-                            span.style.animationDelay = `${index * 0.08}s`;
-                        });
-
-                        // Show curtain after all letters are revealed
-                        const totalDuration = letters.length * 80 + 800; // 80ms per letter + 800ms pause
-                        setTimeout(() => showCurtainReveal(overlay, genre, maturity, resolve), totalDuration);
-                    }
+                    // Show curtain after all letters are revealed
+                    const totalDuration = letters.length * 80 + 800; // 80ms per letter + 800ms pause
+                    setTimeout(() => showCurtainReveal(overlay, genre, maturity, resolve), totalDuration);
                 }
                 // ADVENTURE KIDS: Bouncy letter pop-in
                 else if (genre === 'adventure' && maturity === 'kids') {
                     const bounceEl = document.getElementById('titleText');
+                    const titleText = storyData.title;
+                    const letters = titleText.split('');
+                    bounceEl.innerHTML = '';
 
-                    // Check if Japanese (has ruby tags)
-                    if (title.includes('<ruby>')) {
-                        // Japanese: just show title with CSS animation
-                        bounceEl.innerHTML = title;
-                        setTimeout(() => showCurtainReveal(overlay, genre, maturity, resolve), 2000);
-                    } else {
-                        // English: bouncy character animation
-                        const titleText = storyData.title;
-                        const letters = titleText.split('');
-                        bounceEl.innerHTML = '';
+                    letters.forEach((letter, i) => {
+                        const span = document.createElement('span');
+                        span.textContent = letter;
+                        span.style.animationDelay = `${i * 0.1}s`;
+                        span.classList.add('bounce-letter');
+                        // Add extra margin for spaces
+                        if (letter === ' ') {
+                            span.style.width = '0.5em';
+                            span.style.display = 'inline-block';
+                        }
+                        bounceEl.appendChild(span);
+                    });
 
-                        letters.forEach((letter, i) => {
-                            const span = document.createElement('span');
-                            span.textContent = letter;
-                            span.style.animationDelay = `${i * 0.1}s`;
-                            span.classList.add('bounce-letter');
-                            // Add extra margin for spaces
-                            if (letter === ' ') {
-                                span.style.width = '0.5em';
-                                span.style.display = 'inline-block';
-                            }
-                            bounceEl.appendChild(span);
-                        });
-
-                        setTimeout(() => showCurtainReveal(overlay, genre, maturity, resolve), 2000 + letters.length * 100);
-                    }
+                    setTimeout(() => showCurtainReveal(overlay, genre, maturity, resolve), 2000 + letters.length * 100);
                 }
                 // ADVENTURE ADULT: Cinematic sliding bars
                 else if (genre === 'adventure' && maturity === 'adult') {
                     const slideEl = document.getElementById('titleText');
+                    const titleText = storyData.title;
+                    const letters = titleText.split('');
+                    slideEl.innerHTML = '';
 
-                    // Check if Japanese (has ruby tags)
-                    if (title.includes('<ruby>')) {
-                        // Japanese: just show title with CSS animation
-                        slideEl.innerHTML = title;
-                        setTimeout(() => showCurtainReveal(overlay, genre, maturity, resolve), 3000);
-                    } else {
-                        // English: sliding character animation
-                        const titleText = storyData.title;
-                        const letters = titleText.split('');
-                        slideEl.innerHTML = '';
+                    const middle = Math.floor(letters.length / 2);
+                    letters.forEach((letter, i) => {
+                        const span = document.createElement('span');
+                        span.textContent = letter;
+                        const distance = Math.abs(i - middle);
+                        span.style.animationDelay = `${distance * 0.05}s`;
+                        span.classList.add('slide-letter');
+                        // Add extra margin for spaces
+                        if (letter === ' ') {
+                            span.style.width = '0.5em';
+                            span.style.display = 'inline-block';
+                        }
+                        slideEl.appendChild(span);
+                    });
 
-                        const middle = Math.floor(letters.length / 2);
-                        letters.forEach((letter, i) => {
-                            const span = document.createElement('span');
-                            span.textContent = letter;
-                            const distance = Math.abs(i - middle);
-                            span.style.animationDelay = `${distance * 0.05}s`;
-                            span.classList.add('slide-letter');
-                            // Add extra margin for spaces
-                            if (letter === ' ') {
-                                span.style.width = '0.5em';
-                                span.style.display = 'inline-block';
-                            }
-                            slideEl.appendChild(span);
-                        });
-
-                        setTimeout(() => showCurtainReveal(overlay, genre, maturity, resolve), 3000);
-                    }
+                    setTimeout(() => showCurtainReveal(overlay, genre, maturity, resolve), 3000);
                 }
                 // SCI-FI KIDS: GLaDOS resolving - already handles curtain call
                 else if (genre === 'scifi' && maturity === 'kids') {
