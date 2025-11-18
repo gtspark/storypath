@@ -117,20 +117,17 @@
         function parseFurigana(text) {
             if (!text) return text;
 
-            console.log('[parseFurigana] INPUT:', text);
-
             // If text already contains HTML ruby tags, Claude generated them directly
+            // Remove duplicate kanji《kana》 patterns to avoid double furigana
             if (text.includes('<ruby>') || text.includes('<rt>')) {
-                // Strip ALL bracket notation 《...》 completely - including the brackets and content
-                const result = text.replace(/《[^》]+》/g, '');
-                console.log('[parseFurigana] HAS RUBY - OUTPUT:', result);
-                return result;
+                // Remove entire kanji《kana》 patterns when ruby tags already exist
+                // This handles cases like: <ruby>犯人<rt>はんにん</rt></ruby>犯人《はんにん》
+                // or: 犯人《はんにん》<ruby>犯人<rt>はんにん</rt></ruby>
+                return text.replace(/([一-龯々]+)《[ぁ-ん]+》/g, '');
             }
 
             // Convert 漢字《かんじ》 format to HTML ruby tags (legacy format)
-            const result = text.replace(/([一-龯々]+)《([ぁ-ん]+)》/g, '<ruby>$1<rt>$2</rt></ruby>');
-            console.log('[parseFurigana] LEGACY - OUTPUT:', result);
-            return result;
+            return text.replace(/([一-龯々]+)《([ぁ-ん]+)》/g, '<ruby>$1<rt>$2</rt></ruby>');
         }
 
         function normalizeJapaneseTypography(text) {
