@@ -9,8 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,700;1,400&family=Fredoka:wght@400;700&family=Handlee&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/main.css?v=1763464087">
-    <link rel="stylesheet" href="css/game.css?v=1763464087">
+    <link rel="stylesheet" href="css/main.css?v=1763464088">
+    <link rel="stylesheet" href="css/game.css?v=1763464088">
     <!-- Splitting.js for character animations -->
     <link rel="stylesheet" href="https://unpkg.com/splitting/dist/splitting.css">
     <!-- Animation Libraries -->
@@ -20,7 +20,7 @@
     <script src="https://unpkg.com/splitting/dist/splitting.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/granim@2.0.0/dist/granim.min.js"></script>
-    <script src="js/i18n.js?v=1763464087"></script>
+    <script src="js/i18n.js?v=1763464088"></script>
 </head>
 <body>
     <!-- Black screen overlay for theatrical entrance -->
@@ -117,17 +117,23 @@
         function parseFurigana(text) {
             if (!text) return text;
 
+            console.log('[parseFurigana] INPUT:', text);
+
             // If text already contains HTML ruby tags, Claude generated them directly
             if (text.includes('<ruby>') || text.includes('<rt>')) {
-                return text
+                const result = text
                     // If a duplicate kanji+《kana》 immediately follows </ruby>, drop the duplicate entirely
                     .replace(/(<\/ruby>\s*)([一-龯々]+)《([ぁ-ん]+)》/g, '$1')
                     // Otherwise, just strip the brackets (preserving the kanji)
                     .replace(/《[ぁ-ん]+》/g, '');
+                console.log('[parseFurigana] HAS RUBY - OUTPUT:', result);
+                return result;
             }
 
             // Convert 漢字《かんじ》 format to HTML ruby tags (legacy format)
-            return text.replace(/([一-龯々]+)《([ぁ-ん]+)》/g, '<ruby>$1<rt>$2</rt></ruby>');
+            const result = text.replace(/([一-龯々]+)《([ぁ-ん]+)》/g, '<ruby>$1<rt>$2</rt></ruby>');
+            console.log('[parseFurigana] LEGACY - OUTPUT:', result);
+            return result;
         }
 
         function normalizeJapaneseTypography(text) {
