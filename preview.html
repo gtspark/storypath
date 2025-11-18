@@ -69,8 +69,10 @@
                 element.style.maxWidth = finalWidth + 'px';
                 element.style.maxHeight = finalHeight + 'px';
                 element.style.willChange = 'contents';
-                element.style.contain = 'layout style paint';
+                element.style.contain = 'strict';
                 element.style.boxSizing = 'border-box';
+                element.style.overflow = 'hidden';
+                element.style.transform = 'translateZ(0)'; // Force GPU acceleration
                 
                 document.body.removeChild(measureDiv);
             }
@@ -774,10 +776,16 @@
                         narrative.style.maxWidth = finalWidth + 'px';
                         narrative.style.maxHeight = finalHeight + 'px';
                         narrative.style.willChange = 'contents';
-                        narrative.style.contain = 'layout style paint';
+                        narrative.style.contain = 'strict';
                         narrative.style.boxSizing = 'border-box';
+                        narrative.style.overflow = 'hidden';
+                        narrative.style.transform = 'translateZ(0)'; // Force GPU acceleration
                         
                         // Also fix container dimensions to prevent juddering
+                        const containerWidth = container.offsetWidth;
+                        const containerHeight = container.offsetHeight;
+                        container.style.width = containerWidth + 'px';
+                        container.style.height = containerHeight + 'px';
                         container.style.willChange = 'contents';
                         container.style.contain = 'layout style paint';
                         
