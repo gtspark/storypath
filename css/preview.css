@@ -2457,10 +2457,9 @@ body {
 
 .mystery-content.adult:has(.japanese-text),
 .mystery-content.kids:has(.japanese-text) {
-    max-height: none;
-    height: auto;
-    min-height: auto;
-    overflow: visible;
+    /* Keep max-height: 80vh from parent rule for fixed centered box */
+    overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: row-reverse;
     justify-content: center;
