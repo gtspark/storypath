@@ -743,6 +743,9 @@
                 if (narrative && container) {
                     const isJapanese = narrative.classList.contains('japanese-text');
 
+                    // Pre-set container styles to prevent juddering
+                    container.style.willChange = 'contents';
+                    container.style.contain = 'layout style paint';
                     container.style.opacity = '1';
 
                     if (isJapanese) {
