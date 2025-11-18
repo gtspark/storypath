@@ -62,12 +62,12 @@
                 const finalHeight = measureDiv.offsetHeight;
                 
                 // Set fixed dimensions to prevent layout shifts
-                element.style.width = finalWidth + 'px';
-                element.style.height = finalHeight + 'px';
-                element.style.minWidth = finalWidth + 'px';
-                element.style.minHeight = finalHeight + 'px';
-                element.style.maxWidth = finalWidth + 'px';
-                element.style.maxHeight = finalHeight + 'px';
+                element.style.setProperty('width', finalWidth + 'px', 'important');
+                element.style.setProperty('height', finalHeight + 'px', 'important');
+                element.style.setProperty('min-width', finalWidth + 'px', 'important');
+                element.style.setProperty('min-height', finalHeight + 'px', 'important');
+                element.style.setProperty('max-width', finalWidth + 'px', 'important');
+                element.style.setProperty('max-height', finalHeight + 'px', 'important');
                 element.style.willChange = 'contents';
                 element.style.contain = 'layout style';
                 element.style.boxSizing = 'border-box';
