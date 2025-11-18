@@ -541,6 +541,7 @@ body .story-view.ja-vertical .narrative-text p {
 .story-view.ja-vertical .scene-frame {
     writing-mode: horizontal-tb;
     max-width: 900px;
+    min-width: 400px;
     margin: 0 auto 40px auto;
     aspect-ratio: unset !important;
     height: fit-content !important;
@@ -988,6 +989,44 @@ body.theme-adventure-adult .choice-button {
     100% {
         background-position: 200% 0;
     }
+}
+
+/* Skeleton for vertical Japanese text */
+.story-view.ja-vertical .skeleton-paragraph {
+    min-height: unset;
+    min-width: 60px;
+    width: 60px;
+    height: 70vh;
+    max-height: 800px;
+    background: linear-gradient(
+        180deg,
+        rgba(var(--accent-primary-rgb, 255, 140, 66), 0.1) 0%,
+        rgba(var(--accent-primary-rgb, 255, 140, 66), 0.2) 50%,
+        rgba(var(--accent-primary-rgb, 255, 140, 66), 0.1) 100%
+    );
+    background-size: 100% 200%;
+    margin-bottom: 0;
+    margin-left: 15px;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.story-view.ja-vertical .skeleton-paragraph.short {
+    width: 60px;
+    height: 50vh;
+}
+
+@keyframes skeleton-shimmer-vertical {
+    0% {
+        background-position: 0 -200%;
+    }
+    100% {
+        background-position: 0 200%;
+    }
+}
+
+.story-view.ja-vertical .skeleton-paragraph {
+    animation: skeleton-shimmer-vertical 1.5s ease-in-out infinite;
 }
 
 @keyframes fadeIn {
