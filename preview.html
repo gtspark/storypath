@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StoryPath - Story Preview</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,700;1,400&family=Handlee&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css?v=81">
+    <link rel="stylesheet" href="css/preview.css?v=81">
+    <!-- Splitting.js for character animations -->
+    <link rel="stylesheet" href="https://unpkg.com/splitting/dist/splitting.css">
+    <!-- Animation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@3.0.0/tsparticles.bundle.min.js"></script>
+    <script src="https://unpkg.com/typeit@8.8.7/dist/index.umd.js"></script>
+    <script src="https://unpkg.com/splitting/dist/splitting.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/granim@2.0.0/dist/granim.min.js"></script>
+</head>
+<body>
+    <div id="preview-container"></div>
+
+    <script>
+        const API_URL = `${window.location.protocol}//${window.location.hostname}/storypath-api`;
+        const urlParams = new URLSearchParams(window.location.search);
+        const storyId = urlParams.get('story');
+
+        let storyData = null;
+        let sceneData = null;
+        let titleReady = false;
+
+        // Parse furigana
+        function parseFurigana(text) {
+            if (!text) return text;
+            return text.replace(/([一-龯々]+)《([ぁ-ん]+)》/g, '<ruby>$1<rt>$2</rt></ruby>');
+        }
+
+        // Custom typewriter that preserves HTML and ruby elements
+        function typewriterWithHTML(element, htmlContent, options = {}) {
+            console.log('🔤 typewriterWithHTML START', { 
+                element: element?.className, 
+                htmlLength: htmlContent?.length,
+                hasRuby: htmlContent?.includes('<ruby>'),
+                htmlPreview: htmlContent?.substring(0, 100)
+            });
+            
+            const speed = options.speed || 10;
+            const afterStep = options.afterStep || (() => {});
+            
+            // Create a temporary container to parse HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlContent;
+            
+            // Clear the target element
+            element.innerHTML = '';
+            element.style.opacity = '1';
+            
+            // Parse HTML into a flat array of nodes (text nodes and elements)
+            const nodes = [];
+            function extractNodes(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    const text = node.textContent;
+                    // Split text into characters
+                    for (let i = 0; i < text.length; i++) {
+                        nodes.push({ type: 'char', value: text[i] });
+                    }
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    if (node.tagName === 'RUBY') {
+                        console.log('🔤 Found RUBY element:', node.outerHTML.substring(0, 100));
+                        // Extract ruby base text and furigana separately
+                        const rt = node.querySelector('rt');
+                        const rtText = rt ? rt.textContent : '';
+                        
+                        // Get base text - extract all text nodes that are NOT inside rt
+                        let baseText = '';
+                        Array.from(node.childNodes).forEach(child => {
+                            if (child.nodeType === Node.TEXT_NODE) {
+                                baseText += child.textContent;
+                            } else if (child.nodeType === Node.ELEMENT_NODE && child.tagName === 'RB') {
+                                baseText += child.textContent;
+                            } else if (child.nodeType === Node.ELEMENT_NODE && child.tagName !== 'RT') {
+                                // Other elements (not rt), get their text
+                                baseText += child.textContent;
+                            }
+                        });
+                        
+                        console.log('🔤 Ruby baseText:', baseText, 'rtText:', rtText);
+                        
+                        // Push each base character with ruby metadata
+                        for (let i = 0; i < baseText.length; i++) {
+                            nodes.push({ 
+                                type: 'ruby-char', 
+                                value: baseText[i],
+                                rtText: rtText, // Store rt text for all chars
+                                charIndex: i,
+                                totalChars: baseText.length
+                            });
+                        }
+                    } else {
+                        // Other elements - recurse into children
+                        Array.from(node.childNodes).forEach(extractNodes);
+                    }
+                }
+            }
+            
+            Array.from(tempDiv.childNodes).forEach(extractNodes);
+            console.log('🔤 Parsed nodes:', nodes.length, 'ruby-chars:', nodes.filter(n => n.type === 'ruby-char').length);
+            
+            let index = 0;
+            let charCount = 0;
+            let currentRuby = null; // Track if we're building a ruby element
+            
+            function revealNext() {
+                if (index >= nodes.length) {
+                    if (options.onComplete) options.onComplete();
+                    return;
+                }
+                
+                const node = nodes[index];
+                
+                if (node.type === 'char') {
+                    // Append character
+                    const lastNode = element.lastChild;
+                    if (lastNode && lastNode.nodeType === Node.TEXT_NODE) {
+                        lastNode.textContent += node.value;
+                    } else {
+                        element.appendChild(document.createTextNode(node.value));
+                    }
+                    charCount++;
+                } else if (node.type === 'ruby-char') {
+                    // Check if we need to start a new ruby element
+                    if (node.charIndex === 0) {
+                        // Start a new ruby element
+                        currentRuby = document.createElement('ruby');
+                        element.appendChild(currentRuby);
+                    }
+                    
+                    // Add character to base text (as direct text node, not rb tag)
+                    if (node.charIndex === 0) {
+                        // First character - create text node
+                        const textNode = document.createTextNode(node.value);
+                        currentRuby.appendChild(textNode);
+                    } else {
+                        // Append to existing text node
+                        const textNode = currentRuby.childNodes[0];
+                        if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+                            textNode.textContent += node.value;
+                        } else {
+                            // No text node yet, create one
+                            const textNode = document.createTextNode(node.value);
+                            currentRuby.appendChild(textNode);
+                        }
+                    }
+                    
+                    // Add rt element but keep it hidden until last character
+                    if (node.rtText) {
+                        let rt = currentRuby.querySelector('rt');
+                        if (!rt) {
+                            rt = document.createElement('rt');
+                            rt.textContent = node.rtText;
+                            rt.style.opacity = '0';
+                            currentRuby.appendChild(rt);
+                        }
+                        
+                        // Show furigana only after last character
+                        if (node.charIndex === node.totalChars - 1) {
+                            console.log('🔤 Showing furigana for ruby:', node.rtText);
+                            rt.style.opacity = '1';
+                            currentRuby = null; // Reset for next ruby
+                        }
+                    } else if (node.charIndex === node.totalChars - 1) {
+                        currentRuby = null; // Reset even without rt
+                    }
+                    
+                    charCount++;
+                }
+                
+                index++;
+                
+                // Call afterStep callback
+                if (afterStep) {
+                    afterStep(charCount);
+                }
+                
+                // Schedule next character
+                setTimeout(revealNext, speed);
+            }
+            
+            revealNext();
+        }
+
+        async function loadStoryPreview() {
+            if (!storyId) {
+                alert('No story ID provided');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                console.log('📖 Loading story preview...');
+                const response = await fetch(`${API_URL}/story/${storyId}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                storyData = data.story;
+                sceneData = data.current_scene;
+                console.log('✅ Story loaded:', storyData.title);
+                console.log('🎬 Scene loaded, narrative length:', sceneData.narrative_text.length);
+                renderPreview();
+
+                // Poll for title update
+                pollForTitle();
+
+            } catch (error) {
+                console.error('Failed to load story:', error);
+                alert('Failed to load story preview');
+                window.location.href = 'index.html';
+            }
+        }
+
+        async function pollForTitle() {
+            console.log('📝 Checking if title is ready...');
+            const checkTitle = async () => {
+                try {
+                    const response = await fetch(`${API_URL}/story/${storyId}`);
+                    const data = await response.json();
+
+                    console.log('Current title:', data.story.title);
+                    if (data.story.title && !data.story.title.includes('Story')) {
+                        titleReady = true;
+                        storyData = data.story;
+                        console.log('✅ Title is ready!');
+                        return true;
+                    }
+                    return false;
+                } catch (error) {
+                    console.error('Title check failed:', error);
+                    return false;
+                }
+            };
+
+            // Check every second for up to 30 seconds
+            for (let i = 0; i < 30; i++) {
+                if (await checkTitle()) {
+                    console.log('✅ Title ready!');
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+            // Timeout - use temp title
+            titleReady = true;
+            console.log('Title generation timed out, using temp title');
+        }
+
+        function renderPreview() {
+            const container = document.getElementById('preview-container');
+            const genre = storyData.genre;
+            const maturity = storyData.maturity_level || 'kids';
+            const isJapanese = storyData.language === 'ja';
+
+            console.log(`🎨 Rendering preview: genre=${genre}, maturity=${maturity}`);
+
+            // Narrative already has furigana parsed from server
+            const narrative = sceneData.narrative_text;
+
+            // Genre-specific display
+            let previewHTML = '';
+
+            const buttonText = isJapanese ? {
+                fantasy: '冒険を始める',
+                scifi: '起動',
+                mystery: '捜査開始',
+                horror: '入る',
+                adventure: '出発'
+            } : {
+                fantasy: 'Begin Quest',
+                scifi: 'ENGAGE',
+                mystery: 'Begin Investigation',
+                horror: 'Enter',
+                adventure: "Let's Go"
+            };
+
+            const btnText = buttonText[genre] || (isJapanese ? '開始' : 'Start');
+
+            if (genre === 'scifi') {
+                const scifiIcon = maturity === 'kids' ? '🚀' : '⚡';
+                previewHTML = `
+                    <div class="preview-scifi ${maturity}">
+                        <div id="${maturity}-scifi-particles"></div>
+                        <div class="scifi-container ${maturity}">
+                            <div class="scifi-content ${maturity}">
+                                <div class="scifi-narrative ${maturity} ${isJapanese ? 'japanese-text' : ''}">${narrative}</div>
+                                <button class="dive-btn scifi-btn ${maturity}" onclick="startStory()">
+                                    <span class="btn-text">${btnText}</span>
+                                    <span class="btn-icon">${scifiIcon}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (genre === 'mystery') {
+                const mysteryIcon = maturity === 'kids' ? '🔍' : '🕵️';
+                previewHTML = `
+                    <div class="preview-mystery ${maturity}">
+                        <div id="${maturity}-mystery-particles"></div>
+                        <div class="mystery-container ${maturity}">
+                            <div class="mystery-content ${maturity}">
+                                <div class="mystery-narrative ${maturity} ${isJapanese ? 'japanese-text' : ''}">${narrative}</div>
+                                <button class="dive-btn mystery-btn ${maturity}" onclick="startStory()">
+                                    <span class="btn-text">${btnText}</span>
+                                    <span class="btn-icon">${mysteryIcon}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (genre === 'horror') {
+                const horrorIcon = maturity === 'kids' ? '👻' : '👁️';
+                previewHTML = `
+                    <div class="preview-horror ${maturity}">
+                        <div id="${maturity}-horror-particles"></div>
+                        <div class="horror-container ${maturity}">
+                            <div class="horror-content ${maturity}">
+                                <div class="horror-narrative ${maturity} ${isJapanese ? 'japanese-text' : ''}" data-narrative="${narrative.replace(/"/g, '&quot;')}"></div>
+                                <button class="dive-btn horror-btn ${maturity}" onclick="startStory()">
+                                    <span class="btn-text">${btnText}</span>
+                                    <span class="btn-icon">${horrorIcon}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (genre === 'fantasy') {
+                const fantasyIcon = maturity === 'kids' ? '✨' : '🗡️';
+                previewHTML = `
+                    <div class="preview-fantasy ${maturity}">
+                        <div id="${maturity}-fantasy-particles"></div>
+                        <div class="fantasy-container ${maturity}">
+                            <div class="fantasy-content ${maturity}">
+                                <div class="fantasy-narrative ${maturity} ${isJapanese ? 'japanese-text' : ''}">${narrative}</div>
+                                <button class="dive-btn fantasy-btn ${maturity}" onclick="startStory()">
+                                    <span class="btn-text">${btnText}</span>
+                                    <span class="btn-icon">${fantasyIcon}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Adventure (fallback for any other genre)
+                const adventureIcon = maturity === 'kids' ? '🌟' : '⚔️';
+                previewHTML = `
+                    <div class="preview-adventure ${maturity}">
+                        <div id="${maturity}-adventure-particles"></div>
+                        <div class="adventure-container ${maturity}">
+                            <div class="adventure-content ${maturity}">
+                                <div class="adventure-narrative ${maturity} ${isJapanese ? 'japanese-text' : ''}">${narrative}</div>
+                                <button class="dive-btn adventure-btn ${maturity}" onclick="startStory()">
+                                    <span class="btn-text">${btnText}</span>
+                                    <span class="btn-icon">${adventureIcon}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = previewHTML;
+
+            // Initialize theme-specific effects
+            initializeThemeEffects(genre, maturity);
+        }
+
+        function initializeThemeEffects(genre, maturity) {
+            console.log(`🎨 Initializing effects for ${genre} ${maturity}`);
+
+            if (genre === 'horror') {
+                if (maturity === 'kids') {
+                    initKidsHorrorEffects();
+                } else {
+                    initAdultHorrorEffects();
+                }
+            } else if (genre === 'scifi') {
+                if (maturity === 'kids') {
+                    initKidsScifiEffects();
+                } else {
+                    initAdultScifiEffects();
+                }
+            } else if (genre === 'mystery') {
+                if (maturity === 'kids') {
+                    initKidsMysteryEffects();
+                } else {
+                    initAdultMysteryEffects();
+                }
+            } else if (genre === 'fantasy') {
+                if (maturity === 'kids') {
+                    initKidsFantasyEffects();
+                } else {
+                    initAdultFantasyEffects();
+                }
+            } else {
+                // Adventure
+                if (maturity === 'kids') {
+                    initKidsAdventureEffects();
+                } else {
+                    initAdultAdventureEffects();
+                }
+            }
+        }
+
+        function initKidsHorrorEffects() {
+            // Friendly floating ghost particles
+            tsParticles.load("kids-horror-particles", {
+                particles: {
+                    number: { value: 20 },
+                    color: { value: ["#ffd700", "#ff8c00", "#9370db"] },
+                    shape: {
+                        type: ["circle", "star"],
+                    },
+                    opacity: {
+                        value: 0.6,
+                        animation: {
+                            enable: true,
+                            speed: 1,
+                            minimumValue: 0.3,
+                        }
+                    },
+                    size: {
+                        value: { min: 10, max: 30 },
+                        animation: {
+                            enable: true,
+                            speed: 3,
+                            minimumValue: 10,
+                        }
+                    },
+                    move: {
+                        enable: true,
+                        speed: 2,
+                        direction: "top",
+                        random: true,
+                        straight: false,
+                        outModes: "out",
+                    },
+                },
+                interactivity: {
+                    events: {
+                        onHover: {
+                            enable: true,
+                            mode: "bubble",
+                        },
+                    },
+                    modes: {
+                        bubble: {
+                            distance: 200,
+                            size: 40,
+                            duration: 2,
+                        },
+                    },
+                },
+            });
+
+            // Typewriter effect on narrative
+            setTimeout(() => {
+                const narrative = document.querySelector('.horror-narrative.kids');
+                const container = document.querySelector('.horror-content.kids');
+                if (narrative && container) {
+                    const htmlContent = narrative.dataset.narrative || narrative.innerHTML;
+                    console.log('🔤 Horror Kids - HTML Content:', htmlContent.substring(0, 200));
+                    console.log('🔤 Has Ruby:', htmlContent.includes('<ruby>'));
+                    container.style.opacity = '1';
+
+                    let charCount = 0;
+                    typewriterWithHTML(narrative, htmlContent, {
+                        speed: 10,
+                        afterStep: (count) => {
+                            charCount = count;
+                            // Auto-scroll to bottom every few characters
+                            if (charCount % 5 === 0) {
+                                container.scrollTop = container.scrollHeight;
+                            }
+                        }
+                    });
+                } else {
+                    console.error('❌ Horror Kids - Narrative or container not found', { narrative, container });
+                }
+            }, 500);
+        }
+
+        function initAdultHorrorEffects() {
+            // Fog/static particles
+            tsParticles.load("adult-horror-particles", {
+                particles: {
+                    number: { value: 80 },
+                    color: { value: ["#8b0000", "#ff0000", "#4d0000"] },
+                    shape: { type: "circle" },
+                    opacity: {
+                        value: 0.3,
+                        animation: {
+                            enable: true,
+                            speed: 0.5,
+                            minimumValue: 0.1,
+                        }
+                    },
+                    size: {
+                        value: { min: 1, max: 3 },
+                    },
+                    move: {
+                        enable: true,
+                        speed: 0.5,
+                        direction: "none",
+                        random: true,
+                        straight: false,
+                        outModes: "bounce",
+                    },
+                },
+            });
+
+            // Typewriter effect with auto-scroll for adult horror
+            setTimeout(() => {
+                const narrative = document.querySelector('.horror-narrative.adult');
+                const container = document.querySelector('.horror-content.adult');
+                console.log('🎬 Adult horror typewriter init:', { narrative, container });
+                if (narrative && container) {
+                    const htmlContent = narrative.dataset.narrative || narrative.innerHTML;
+                    container.style.opacity = '1';
+                    console.log('📝 HTML content length:', htmlContent.length);
+
+                    let charCount = 0;
+                    typewriterWithHTML(narrative, htmlContent, {
+                        speed: 15, // Slightly slower for adult, more dramatic
+                        afterStep: (count) => {
+                            charCount = count;
+                            // Auto-scroll to bottom every few characters
+                            if (charCount % 5 === 0) {
+                                console.log('📜 Scrolling:', container.scrollTop, '→', container.scrollHeight);
+                                container.scrollTop = container.scrollHeight;
+                            }
+                        }
+                    });
+
+                    // Glitch effect during typing
+                    setInterval(() => {
+                        if (Math.random() > 0.7) {
+                            narrative.classList.add('glitch');
+                            setTimeout(() => narrative.classList.remove('glitch'), 200);
+                        }
+                    }, 2000);
+                }
+            }, 500);
+
+            // Random blood drips
+            createBloodDrips();
+        }
+
+        function createBloodDrips() {
+            const container = document.querySelector('.preview-horror.adult');
+            if (!container) return;
+
+            setInterval(() => {
+                if (Math.random() > 0.8) {
+                    const drip = document.createElement('div');
+                    drip.className = 'blood-drip';
+                    drip.style.left = Math.random() * 100 + '%';
+                    container.appendChild(drip);
+
+                    setTimeout(() => drip.remove(), 2000);
+                }
+            }, 1000);
+        }
+
+        // ===== SCI-FI EFFECTS =====
+        function initKidsScifiEffects() {
+            // Colorful stars and planets
+            tsParticles.load("kids-scifi-particles", {
+                particles: {
+                    number: { value: 40 },
+                    color: { value: ["#00ff00", "#00ffff", "#ffff00", "#ff00ff"] },
+                    shape: { type: ["circle", "star"] },
+                    opacity: {
+                        value: 0.8,
+                        animation: { enable: true, speed: 1, minimumValue: 0.3 }
+                    },
+                    size: {
+                        value: { min: 3, max: 8 },
+                        animation: { enable: true, speed: 2 }
+                    },
+                    move: {
+                        enable: true,
+                        speed: 1.5,
+                        direction: "none",
+                        random: true,
+                        straight: false,
+                        outModes: "bounce"
+                    }
+                }
+            });
+
+            // Typewriter effect
+            setTimeout(() => {
+                const narrative = document.querySelector('.scifi-narrative.kids');
+                const container = document.querySelector('.scifi-content.kids');
+                if (narrative && container) {
+                    const htmlContent = narrative.innerHTML;
+                    container.style.opacity = '1';
+
+                    let charCount = 0;
+                    typewriterWithHTML(narrative, htmlContent, {
+                        speed: 12,
+                        afterStep: (count) => {
+                            charCount = count;
+                            if (charCount % 5 === 0) {
+                                container.scrollTop = container.scrollHeight;
+                            }
+                        }
+                    });
+                }
+            }, 500);
+        }
+
+        function initAdultScifiEffects() {
+            // Matrix-style digital rain
+            tsParticles.load("adult-scifi-particles", {
+                particles: {
+                    number: { value: 50 },
+                    color: { value: "#00ff00" },
+                    shape: { type: "character", character: { value: ["0", "1", "█", "▓", "▒"] } },
+                    opacity: {
+                        value: 0.7,
+                        animation: { enable: true, speed: 1, minimumValue: 0.1 }
+                    },
+                    size: { value: 16 },
+                    move: {
+                        enable: true,
+                        speed: 3,
+                        direction: "bottom",
+                        straight: true,
+                        outModes: "out"
+                    }
+                }
+            });
+
+            // Typewriter with glitch
+            setTimeout(() => {
+                const narrative = document.querySelector('.scifi-narrative.adult');
+                const container = document.querySelector('.scifi-content.adult');
+                if (narrative && container) {
+                    const htmlContent = narrative.innerHTML;
+                    container.style.opacity = '1';
+
+                    let charCount = 0;
+                    typewriterWithHTML(narrative, htmlContent, {
+                        speed: 8,
+                        afterStep: (count) => {
+                            charCount = count;
+                            if (charCount % 5 === 0) {
+                                container.scrollTop = container.scrollHeight;
+                            }
+                        }
+                    });
+
+                    // Random glitch effect
+                    setInterval(() => {
+                        if (Math.random() > 0.8) {
+                            narrative.classList.add('glitch-text');
+                            setTimeout(() => narrative.classList.remove('glitch-text'), 100);
+                        }
+                    }, 1500);
+                }
+            }, 500);
+        }
+
+        // ===== MYSTERY EFFECTS =====
+        function initKidsMysteryEffects() {
+            // Magnifying glass particles
+            tsParticles.load("kids-mystery-particles", {
+                particles: {
+                    number: { value: 15 },
+                    color: { value: ["#ff9800", "#ffc107"] },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5, animation: { enable: true, speed: 1 } },
+                    size: { value: { min: 5, max: 15 } },
+                    move: { enable: true, speed: 0.5, direction: "none", random: true }
+                }
+            });
+
+            setTimeout(() => {
+                const narrative = document.querySelector('.mystery-narrative.kids');
+                const container = document.querySelector('.mystery-content.kids');
+                if (narrative && container) {
+                    const htmlContent = narrative.innerHTML;
+                    container.style.opacity = '1';
+                    let charCount = 0;
+                    typewriterWithHTML(narrative, htmlContent, {
+                        speed: 10,
+                        afterStep: (count) => {
+                            charCount = count;
+                            if (charCount % 5 === 0) container.scrollTop = container.scrollHeight;
+                        }
+                    });
+                }
+            }, 500);
+        }
+
+        function initAdultMysteryEffects() {
+            // Rain particles
+            tsParticles.load("adult-mystery-particles", {
+                particles: {
+                    number: { value: 100 },
+                    color: { value: "#6c757d" },
+                    shape: { type: "line" },
+                    opacity: { value: 0.4 },
+                    size: { value: { min: 1, max: 3 } },
+                    move: { enable: true, speed: 10, direction: "bottom", straight: true, outModes: "out" }
+                }
+            });
+
+            setTimeout(() => {
+                const narrative = document.querySelector('.mystery-narrative.adult');
+                const container = document.querySelector('.mystery-content.adult');
+                if (narrative && container) {
+                    const isJapanese = narrative.classList.contains('japanese-text');
+
+                    container.style.opacity = '1';
+
+                    if (isJapanese) {
+                        // Ink brush effect for Japanese - preserve HTML (furigana) and animate ruby character-by-character
+                        const originalHTML = narrative.innerHTML;
+                        narrative.innerHTML = '';
+                        narrative.style.opacity = '1';
+
+                        // Create a temporary div to parse the HTML
+                        const temp = document.createElement('div');
+                        temp.innerHTML = originalHTML;
+
+                        let charIndex = 0;
+                        let currentRuby = null;
+                        
+                        const processNode = (node) => {
+                            if (node.nodeType === Node.TEXT_NODE) {
+                                // Text node - split into characters
+                                const chars = [...node.textContent];
+                                chars.forEach(char => {
+                                    const span = document.createElement('span');
+                                    span.textContent = char;
+                                    span.style.opacity = '0';
+                                    span.style.animation = 'inkSpread 0.75s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+                                    span.style.animationDelay = `${charIndex * 0.0625}s`;
+                                    narrative.appendChild(span);
+                                    charIndex++;
+                                });
+                            } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'RUBY') {
+                                // Ruby element - extract base text and animate character-by-character
+                                const rt = node.querySelector('rt');
+                                const rtText = rt ? rt.textContent : '';
+                                
+                                // Get base text
+                                let baseText = '';
+                                Array.from(node.childNodes).forEach(child => {
+                                    if (child.nodeType === Node.TEXT_NODE) {
+                                        baseText += child.textContent;
+                                    } else if (child.nodeType === Node.ELEMENT_NODE && child.tagName !== 'RT') {
+                                        baseText += child.textContent;
+                                    }
+                                });
+                                
+                                // Create ruby element
+                                const rubyElement = document.createElement('ruby');
+                                const baseTextNode = document.createTextNode('');
+                                rubyElement.appendChild(baseTextNode);
+                                
+                                // Add rt element but keep it hidden initially
+                                if (rtText) {
+                                    const rtElement = document.createElement('rt');
+                                    rtElement.textContent = rtText;
+                                    rtElement.style.opacity = '0';
+                                    rubyElement.appendChild(rtElement);
+                                }
+                                
+                                narrative.appendChild(rubyElement);
+                                
+                                // Animate base text character-by-character
+                                const chars = [...baseText];
+                                chars.forEach((char, i) => {
+                                    setTimeout(() => {
+                                        baseTextNode.textContent += char;
+                                        
+                                        // Show furigana after last character
+                                        if (i === chars.length - 1 && rtText) {
+                                            const rt = rubyElement.querySelector('rt');
+                                            if (rt) {
+                                                setTimeout(() => {
+                                                    rt.style.opacity = '1';
+                                                    rt.style.transition = 'opacity 0.3s ease-in';
+                                                }, 100);
+                                            }
+                                        }
+                                    }, charIndex * 62.5); // 0.0625s = 62.5ms
+                                    charIndex++;
+                                });
+                            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                                // Other elements - recurse
+                                node.childNodes.forEach(processNode);
+                            }
+                        };
+
+                        temp.childNodes.forEach(processNode);
+                    } else {
+                        // Use the new typewriter function for English that preserves ruby
+                        const htmlContent = narrative.innerHTML;
+                        let charCount = 0;
+                        typewriterWithHTML(narrative, htmlContent, {
+                            speed: 12,
+                            afterStep: (count) => {
+                                charCount = count;
+                                if (charCount % 5 === 0) {
+                                    container.scrollTop = container.scrollHeight;
+                                }
+                            }
+                        });
+                    }
+                }
+            }, 500);
+        }
+
+        // ===== FANTASY EFFECTS =====
+        function initKidsFantasyEffects() {
+            // Magic sparkles
+            tsParticles.load("kids-fantasy-particles", {
+                particles: {
+                    number: { value: 50 },
+                    color: { value: ["#ff69b4", "#9370db", "#ffd700"] },
+                    shape: { type: "star" },
+                    opacity: { value: 0.8, animation: { enable: true, speed: 1 } },
+                    size: { value: { min: 2, max: 6 }, animation: { enable: true, speed: 3 } },
+                    move: { enable: true, speed: 1, direction: "top-right", random: true, outModes: "out" }
+                }
+            });
+
+            setTimeout(() => {
+                const narrative = document.querySelector('.fantasy-narrative.kids');
+                const container = document.querySelector('.fantasy-content.kids');
+                if (narrative && container) {
+                    const htmlContent = narrative.innerHTML;
+                    container.style.opacity = '1';
+                    let charCount = 0;
+                    typewriterWithHTML(narrative, htmlContent, {
+                        speed: 10,
+                        afterStep: (count) => {
+                            charCount = count;
+                            if (charCount % 5 === 0) container.scrollTop = container.scrollHeight;
+                        }
+                    });
+                }
+            }, 500);
+        }
+
+        function initAdultFantasyEffects() {
+            // Dark magic embers
+            tsParticles.load("adult-fantasy-particles", {
+                particles: {
+                    number: { value: 40 },
+                    color: { value: ["#8b0000", "#ff4500", "#ffd700"] },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.6, animation: { enable: true, speed: 1 } },
+                    size: { value: { min: 1, max: 4 }, animation: { enable: true, speed: 2 } },
+                    move: { enable: true, speed: 1.5, direction: "top", random: true, outModes: "out" }
+                }
+            });
+
+            setTimeout(() => {
+                const narrative = document.querySelector('.fantasy-narrative.adult');
+                const container = document.querySelector('.fantasy-content.adult');
+                if (narrative && container) {
+                    const htmlContent = narrative.innerHTML;
+                    container.style.opacity = '1';
+                    let charCount = 0;
+                    typewriterWithHTML(narrative, htmlContent, {
+                        speed: 15,
+                        afterStep: (count) => {
+                            charCount = count;
+                            if (charCount % 5 === 0) container.scrollTop = container.scrollHeight;
+                        }
+                    });
+                }
+            }, 500);
+        }
+
+        // ===== ADVENTURE EFFECTS =====
+        function initKidsAdventureEffects() {
+            // Floating coins and treasures
+            tsParticles.load("kids-adventure-particles", {
+                particles: {
+                    number: { value: 30 },
+                    color: { value: ["#ffd700", "#ffeb3b", "#ff9800"] },
+                    shape: { type: ["circle", "triangle"] },
+                    opacity: { value: 0.7, animation: { enable: true, speed: 1 } },
+                    size: { value: { min: 5, max: 10 } },
+                    move: { enable: true, speed: 1, direction: "none", random: true, outModes: "bounce" }
+                }
+            });
+
+            setTimeout(() => {
+                const narrative = document.querySelector('.adventure-narrative.kids');
+                const container = document.querySelector('.adventure-content.kids');
+                if (narrative && container) {
+                    const htmlContent = narrative.innerHTML;
+                    container.style.opacity = '1';
+                    let charCount = 0;
+                    typewriterWithHTML(narrative, htmlContent, {
+                        speed: 10,
+                        afterStep: (count) => {
+                            charCount = count;
+                            if (charCount % 5 === 0) container.scrollTop = container.scrollHeight;
+                        }
+                    });
+                }
+            }, 500);
+        }
+
+        function initAdultAdventureEffects() {
+            // Sand and wind particles
+            tsParticles.load("adult-adventure-particles", {
+                particles: {
+                    number: { value: 60 },
+                    color: { value: ["#d4a574", "#8b7355"] },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.3, animation: { enable: true, speed: 1 } },
+                    size: { value: { min: 1, max: 3 } },
+                    move: { enable: true, speed: 2, direction: "right", straight: false, random: true, outModes: "out" }
+                }
+            });
+
+            setTimeout(() => {
+                const narrative = document.querySelector('.adventure-narrative.adult');
+                const container = document.querySelector('.adventure-content.adult');
+                if (narrative && container) {
+                    const htmlContent = narrative.innerHTML;
+                    container.style.opacity = '1';
+                    let charCount = 0;
+                    typewriterWithHTML(narrative, htmlContent, {
+                        speed: 12,
+                        afterStep: (count) => {
+                            charCount = count;
+                            if (charCount % 5 === 0) container.scrollTop = container.scrollHeight;
+                        }
+                    });
+                }
+            }, 500);
+        }
+
+        async function startStory() {
+            console.log('🚀 Start story clicked! titleReady:', titleReady);
+
+            // Wait for title if not ready
+            if (!titleReady) {
+                console.log('⏳ Waiting for title to be ready...');
+                const btn = document.querySelector('.dive-btn');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="btn-text">Preparing...</span>';
+
+                let waitCount = 0;
+                while (!titleReady && waitCount < 60) { // Max 30 seconds
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    waitCount++;
+                }
+
+                if (!titleReady) {
+                    console.warn('⚠️ Title still not ready after 30s, proceeding anyway');
+                }
+            }
+
+            // Show title reveal animation
+            await showTitleReveal();
+
+            // Navigate to game
+            window.location.href = `game.html?story=${storyId}`;
+        }
+
+        async function showTitleReveal() {
+            return new Promise(async (resolve) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'title-reveal-overlay';
+
+                const genre = storyData.genre;
+                const maturity = storyData.maturity_level || 'kids';
+                const title = parseFurigana(storyData.title);
+
+                let animationHTML = '';
+
+                // FANTASY ADULT: Fire particles rising from bottom
+                if (genre === 'fantasy' && maturity === 'adult') {
+                    animationHTML = `
+                        <div class="title-reveal fantasy-reveal-adult">
+                            <canvas id="particleCanvas"></canvas>
+                            <div class="epic-title" id="titleText">${title}</div>
+                        </div>
+                    `;
+                }
+                // FANTASY KIDS: Waving pennant flag with drawing letters
+                else if (genre === 'fantasy' && maturity === 'kids') {
+                    animationHTML = `
+                        <div class="title-reveal fantasy-reveal-kids-flag">
+                            <svg class="flag-svg" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+                                <!-- Flag pole -->
+                                <rect class="flag-pole" x="50" y="50" width="8" height="350" fill="#8B4513"/>
+                                <circle class="flag-pole-top" cx="54" cy="45" r="8" fill="#FFD700"/>
+
+                                <!-- Waving flag background -->
+                                <path class="flag-cloth" d="M 70 80 Q 250 60, 430 80 Q 610 100, 750 80 L 750 280 Q 610 300, 430 280 Q 250 260, 70 280 Z" fill="url(#flagGradient)"/>
+
+                                <!-- Flag gradient -->
+                                <defs>
+                                    <linearGradient id="flagGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#FF69B4;stop-opacity:1" />
+                                        <stop offset="50%" style="stop-color:#9C27B0;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#E1BEE7;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+
+                                <!-- Title text - will be animated with character-by-character stroke drawing -->
+                                <text id="flagText" class="flag-text" x="400" y="200" text-anchor="middle" font-size="48" font-weight="bold" font-family="'Fredoka', 'Chewy', cursive">${storyData.title}</text>
+                            </svg>
+                        </div>
+                    `;
+                }
+                // SCI-FI ADULT: Matrix code rain effect
+                else if (genre === 'scifi' && maturity === 'adult') {
+                    animationHTML = `
+                        <div class="title-reveal scifi-reveal-adult">
+                            <canvas id="matrixCanvas"></canvas>
+                            <div class="matrix-title" id="titleText">${title}</div>
+                        </div>
+                    `;
+                }
+                // SCI-FI KIDS: GLaDOS-style resolving text
+                else if (genre === 'scifi' && maturity === 'kids') {
+                    animationHTML = `<div class="title-reveal scifi-reveal-kids"><div class="resolve-text" id="titleText" data-text="${storyData.title}"></div></div>`;
+                }
+                // HORROR ADULT: Flickering horror text
+                else if (genre === 'horror' && maturity === 'adult') {
+                    animationHTML = `
+                        <div class="title-reveal horror-reveal-adult-flicker">
+                            <div class="horror-text" id="titleText">${title}</div>
+                        </div>
+                    `;
+                }
+                // HORROR KIDS: Bouncing ghost (CSS-based)
+                else if (genre === 'horror' && maturity === 'kids') {
+                    animationHTML = `<div class="title-reveal horror-reveal kids"><div class="ghost-text" id="titleText">${title}</div></div>`;
+                }
+                // MYSTERY KIDS: Letter-by-letter reveal
+                else if (genre === 'mystery' && maturity === 'kids') {
+                    animationHTML = `
+                        <div class="title-reveal mystery-reveal-kids">
+                            <div class="mystery-kids-text" id="titleText"></div>
+                        </div>
+                    `;
+                }
+                // MYSTERY ADULT: Ink spread fade-in (CSS-based)
+                else if (genre === 'mystery' && maturity === 'adult') {
+                    animationHTML = `<div class="title-reveal mystery-reveal-adult"><div class="ink-text" id="titleText">${title}</div></div>`;
+                }
+                // ADVENTURE KIDS: Bouncy letter pop-in
+                else if (genre === 'adventure' && maturity === 'kids') {
+                    animationHTML = `<div class="title-reveal adventure-reveal-kids"><div class="bounce-text" id="titleText"></div></div>`;
+                }
+                // ADVENTURE ADULT: Cinematic sliding bars
+                else if (genre === 'adventure' && maturity === 'adult') {
+                    animationHTML = `<div class="title-reveal adventure-reveal-adult"><div class="slide-reveal-text" id="titleText"></div></div>`;
+                }
+                // DEFAULT
+                else {
+                    animationHTML = `<div class="title-reveal default-reveal"><div class="sparkle-text" id="titleText">${title}</div></div>`;
+                }
+
+                overlay.innerHTML = animationHTML;
+                document.body.appendChild(overlay);
+
+                // FANTASY KIDS FLAG ANIMATION
+                if (genre === 'fantasy' && maturity === 'kids') {
+                    // Split text into individual characters and animate stroke drawing
+                    const flagText = document.getElementById('flagText');
+                    if (flagText) {
+                        const text = flagText.textContent;
+
+                        // Create temporary canvas to measure text
+                        const tempCanvas = document.createElement('canvas');
+                        const tempCtx = tempCanvas.getContext('2d');
+                        tempCtx.font = 'bold 48px Fredoka, Chewy, cursive';
+
+                        flagText.textContent = ''; // Clear original text
+
+                        // Create tspan for each character with proper spacing
+                        const chars = text.split('');
+                        const charElements = [];
+
+                        // Position characters using tspan dx for relative positioning
+                        chars.forEach((char, index) => {
+                            const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+                            tspan.textContent = char;
+
+                            // Measure actual character width
+                            const metrics = tempCtx.measureText(char);
+                            const charWidth = metrics.width || (char === ' ' ? 20 : 30);
+
+                            // Set stroke-dasharray based on measured width
+                            tspan.style.strokeDasharray = charWidth * 2;
+                            tspan.style.strokeDashoffset = charWidth * 2;
+
+                            flagText.appendChild(tspan);
+                            charElements.push({ element: tspan, length: charWidth * 2 });
+                        });
+
+                        // Animate each character with staggered timing
+                        charElements.forEach((charData, index) => {
+                            const tspan = charData.element;
+                            const delay = index * 100; // 100ms between each character
+
+                            // Draw animation (stroke-dashoffset: length -> 0)
+                            setTimeout(() => {
+                                tspan.style.animation = `fantasyKidsDrawChar 0.5s ease-out forwards, fantasyKidsFillChar 0.3s ease-out 0.5s forwards`;
+                            }, delay + 500); // Start after 500ms
+                        });
+                    }
+
+                    // Flag waves and text draws on, then curtain reveals
+                    setTimeout(() => showCurtainReveal(overlay, genre, maturity, resolve), 4000);
+                }
+                // MATRIX CODE RAIN (Sci-fi Adult)
+                else if (genre === 'scifi' && maturity === 'adult') {
+                    const canvas = document.getElementById('matrixCanvas');
+                    const titleEl = document.getElementById('titleText');
+
+                    if (canvas && titleEl) {
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = window.innerWidth;
+                        canvas.height = window.innerHeight;
+
+                        // Matrix characters - multilingual "Hello World" and code symbols
+                        const matrixChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$@#%^&*()_+-={}[]|;:<>?/~`Hello你好مرحباשלוםHola안녕하세요ハロー';
+                        const fontSize = 16;
+                        const columns = Math.floor(canvas.width / fontSize);
+
+                        // Initialize rain drops
+                        const drops = Array(columns).fill(0).map(() => Math.floor(Math.random() * canvas.height / fontSize));
+
+                        // Animation function
+                        function drawMatrix() {
+                            // Semi-transparent black to create trail effect
+                            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                            ctx.fillStyle = '#0F0'; // Green text
+                            ctx.font = `${fontSize}px monospace`;
+
+                            // Draw characters
+                            for (let i = 0; i < drops.length; i++) {
+                                const char = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+                                const x = i * fontSize;
+                                const y = drops[i] * fontSize;
+
+                                ctx.fillText(char, x, y);
+
+                                // Reset drop to top randomly
+                                if (y > canvas.height && Math.random() > 0.975) {
+                                    drops[i] = 0;
+                                }
+                                drops[i]++;
+                            }
+                        }
+
+                        // Run matrix animation
+                        const matrixInterval = setInterval(drawMatrix, 50);
+
+                        // Show title after 1 second with fade-in
+                        setTimeout(() => {
+                            titleEl.style.opacity = '0';
+                            titleEl.style.display = 'block';
+                            titleEl.style.transition = 'opacity 1s ease-in';
+                            setTimeout(() => titleEl.style.opacity = '1', 100);
+                        }, 1000);
+
+                        // Stop matrix and show curtain after 4 seconds
+                        setTimeout(() => {
+                            clearInterval(matrixInterval);
+                            showCurtainReveal(overlay, genre, maturity, resolve);
+                        }, 4000);
+                    }
+                }
+                // PARTICLE ANIMATIONS (Fantasy Adult only now)
+                else if (genre === 'fantasy' && maturity === 'adult') {
+                    const canvas = document.getElementById('particleCanvas');
+                    if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+
+                    const titleEl = document.getElementById('titleText');
+                    const titleText = titleEl.textContent;
+                    titleEl.style.display = 'none'; // Hide completely - particles are the text
+
+                    // Create offscreen canvas to render text and get pixels
+                    const offscreenCanvas = document.createElement('canvas');
+                    offscreenCanvas.width = canvas.width;
+                    offscreenCanvas.height = canvas.height;
+                    const offscreenCtx = offscreenCanvas.getContext('2d');
+
+                    offscreenCtx.font = 'bold 80px Cinzel, serif';
+                    offscreenCtx.textAlign = 'center';
+                    offscreenCtx.textBaseline = 'middle';
+                    offscreenCtx.fillStyle = 'white';
+                    offscreenCtx.fillText(titleText, canvas.width / 2, canvas.height / 2);
+
+                    // Get pixel data
+                    const imageData = offscreenCtx.getImageData(0, 0, canvas.width, canvas.height);
+                    const pixels = imageData.data;
+
+                    // Create particle for each text pixel (sample more sparsely)
+                    const particles = [];
+                    for (let y = 0; y < canvas.height; y += 6) {
+                        for (let x = 0; x < canvas.width; x += 6) {
+                            const i = (y * canvas.width + x) * 4;
+                            const alpha = pixels[i + 3];
+
+                            if (alpha > 128) {
+                                let particle;
+
+                                if (genre === 'fantasy' && maturity === 'adult') {
+                                    // FIRE: Rise from bottom
+                                    const colorChoice = Math.random();
+                                    let color = colorChoice < 0.3 ? '#ff3300' : colorChoice < 0.7 ? '#ff6b00' : '#ffaa00';
+                                    particle = {
+                                        x: x + (Math.random() - 0.5) * 100,
+                                        y: canvas.height + Math.random() * 100,
+                                        targetX: x,
+                                        targetY: y,
+                                        vx: 0,
+                                        vy: 0,
+                                        size: Math.random() * 2 + 2,
+                                        color: color
+                                    };
+                                } else if (genre === 'fantasy' && maturity === 'kids') {
+                                    // SPARKLES: Come from all directions with rainbow colors
+                                    const angle = Math.random() * Math.PI * 2;
+                                    const distance = 400 + Math.random() * 200;
+                                    const colors = ['#ff69b4', '#9c27b0', '#00ffff', '#ffff00', '#ff1493'];
+                                    particle = {
+                                        x: canvas.width / 2 + Math.cos(angle) * distance,
+                                        y: canvas.height / 2 + Math.sin(angle) * distance,
+                                        targetX: x,
+                                        targetY: y,
+                                        vx: 0,
+                                        vy: 0,
+                                        size: Math.random() * 3 + 2,
+                                        color: colors[Math.floor(Math.random() * colors.length)],
+                                        twinkle: Math.random() * Math.PI * 2
+                                    };
+                                } else if (genre === 'scifi' && maturity === 'adult') {
+                                    // MATRIX: Digital rain from top
+                                    particle = {
+                                        x: x,
+                                        y: -Math.random() * canvas.height,
+                                        targetX: x,
+                                        targetY: y,
+                                        vx: 0,
+                                        vy: 0,
+                                        size: 2,
+                                        color: '#00ff00',
+                                        trailLength: Math.random() * 20 + 10
+                                    };
+                                } else if (genre === 'horror' && maturity === 'adult') {
+                                    // BLOOD: Drip from top
+                                    particle = {
+                                        x: x + (Math.random() - 0.5) * 50,
+                                        y: -Math.random() * 100,
+                                        targetX: x,
+                                        targetY: y,
+                                        vx: 0,
+                                        vy: 0,
+                                        size: Math.random() * 3 + 1,
+                                        color: Math.random() > 0.5 ? '#8b0000' : '#ff0000'
+                                    };
+                                }
+
+                                if (particle) particles.push(particle);
+                            }
+                        }
+                    }
+
+                    // Use lighter composite for fire glow
+                    ctx.globalCompositeOperation = 'lighter';
+                    ctx.shadowBlur = 10;
+
+                    let frame = 0;
+                    function animate() {
+                        frame++;
+
+                        // Clear with fade
+                        ctx.globalCompositeOperation = 'source-over';
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.globalCompositeOperation = 'lighter';
+
+                        const progress = Math.min(frame / 60, 1);
+
+                        particles.forEach(p => {
+                            // Physics: accelerate toward target
+                            const dx = p.targetX - p.x;
+                            const dy = p.targetY - p.y;
+
+                            p.vx += dx * 0.003;
+                            p.vy += dy * 0.003;
+                            p.vx *= 0.9;
+                            p.vy *= 0.9;
+
+                            p.x += p.vx;
+                            p.y += p.vy;
+
+                            // Draw based on type
+                            ctx.shadowColor = p.color;
+                            ctx.fillStyle = p.color;
+
+                            if (genre === 'fantasy' && maturity === 'kids') {
+                                // Twinkling sparkles
+                                p.twinkle += 0.15;
+                                const twinkleSize = p.size * (0.7 + Math.sin(p.twinkle) * 0.3);
+                                ctx.beginPath();
+                                ctx.arc(p.x, p.y, twinkleSize, 0, Math.PI * 2);
+                                ctx.fill();
+                            } else {
+                                // Square particles for fire/matrix/blood
+                                ctx.fillRect(p.x, p.y, p.size, p.size);
+                            }
+                        });
+
+                        if (frame < 180) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            ctx.globalCompositeOperation = 'source-over';
+                            // Wait for particles to settle, then show curtain
+                            setTimeout(() => showCurtainReveal(overlay, genre, maturity, resolve), 1000);
+                        }
+                    }
+
+                    animate();
+                    return; // Don't call showCurtainReveal at the end
+                    }
+                }
+                // SCI-FI KIDS: GLaDOS-style resolving text effect
+                else if (genre === 'scifi' && maturity === 'kids') {
+                    const resolveEl = document.getElementById('titleText');
+                    const targetText = resolveEl.getAttribute('data-text');
+                    const characters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'x', 'y', 'z', '#', '%', '&', '-', '+', '_', '?', '/', '\\', '='];
+
+                    function randomChar() {
+                        return characters[Math.floor(Math.random() * characters.length)];
+                    }
+
+                    function resolveText(offset = 0) {
+                        if (offset > targetText.length) {
+                            resolveEl.textContent = targetText;
+                            setTimeout(() => showCurtainReveal(overlay, genre, maturity, resolve), 1000);
+                            return;
+                        }
+
+                        const partialString = targetText.substring(0, offset);
+                        let iterations = 10;
+
+                        function randomize() {
+                            if (iterations >= 0) {
+                                if (iterations === 0) {
+                                    resolveEl.textContent = partialString;
+                                } else {
+                                    resolveEl.textContent = partialString.substring(0, partialString.length - 1) + randomChar();
+                                }
+                                iterations--;
+                                setTimeout(randomize, 5);
+                            } else {
+                                resolveText(offset + 1);
+                            }
+                        }
+                        randomize();
+                    }
+
+                    resolveText(0);
+                }
+                // MYSTERY KIDS: Letter-by-letter reveal
+                else if (genre === 'mystery' && maturity === 'kids') {
+                    const textEl = document.getElementById('titleText');
+                    const titleText = storyData.title;
+                    const letters = titleText.split('');
+
+                    // Create letter spans
+                    textEl.innerHTML = letters.map(letter =>
+                        `<span class="letter">${letter === ' ' ? '&nbsp;' : letter}</span>`
+                    ).join('');
+
+                    // Animate letters with delay
+                    const letterSpans = textEl.querySelectorAll('.letter');
+                    letterSpans.forEach((span, index) => {
+                        span.style.animationDelay = `${index * 0.08}s`;
+                    });
+
+                    // Show curtain after all letters are revealed
+                    const totalDuration = letters.length * 80 + 800; // 80ms per letter + 800ms pause
+                    setTimeout(() => showCurtainReveal(overlay, genre, maturity, resolve), totalDuration);
+                }
+                // ADVENTURE KIDS: Bouncy letter pop-in
+                else if (genre === 'adventure' && maturity === 'kids') {
+                    const bounceEl = document.getElementById('titleText');
+                    const titleText = storyData.title;
+                    const letters = titleText.split('');
+                    bounceEl.innerHTML = '';
+
+                    letters.forEach((letter, i) => {
+                        const span = document.createElement('span');
+                        span.textContent = letter;
+                        span.style.animationDelay = `${i * 0.1}s`;
+                        span.classList.add('bounce-letter');
+                        // Add extra margin for spaces
+                        if (letter === ' ') {
+                            span.style.width = '0.5em';
+                            span.style.display = 'inline-block';
+                        }
+                        bounceEl.appendChild(span);
+                    });
+
+                    setTimeout(() => showCurtainReveal(overlay, genre, maturity, resolve), 2000 + letters.length * 100);
+                }
+                // ADVENTURE ADULT: Cinematic sliding bars
+                else if (genre === 'adventure' && maturity === 'adult') {
+                    const slideEl = document.getElementById('titleText');
+                    const titleText = storyData.title;
+                    const letters = titleText.split('');
+                    slideEl.innerHTML = '';
+
+                    const middle = Math.floor(letters.length / 2);
+                    letters.forEach((letter, i) => {
+                        const span = document.createElement('span');
+                        span.textContent = letter;
+                        const distance = Math.abs(i - middle);
+                        span.style.animationDelay = `${distance * 0.05}s`;
+                        span.classList.add('slide-letter');
+                        // Add extra margin for spaces
+                        if (letter === ' ') {
+                            span.style.width = '0.5em';
+                            span.style.display = 'inline-block';
+                        }
+                        slideEl.appendChild(span);
+                    });
+
+                    setTimeout(() => showCurtainReveal(overlay, genre, maturity, resolve), 3000);
+                }
+                // SCI-FI KIDS: GLaDOS resolving - already handles curtain call
+                else if (genre === 'scifi' && maturity === 'kids') {
+                    // Already handled above with resolveText completion
+                }
+                // MYSTERY KIDS: Typewriter - already handles curtain call
+                else if (genre === 'mystery' && maturity === 'kids') {
+                    // Already handled above with typewriter completion
+                }
+                // ADVENTURE KIDS: Bounce - already handles curtain call
+                else if (genre === 'adventure' && maturity === 'kids') {
+                    // Already handled above with bounce completion
+                }
+                // ADVENTURE ADULT: Slide - already handles curtain call
+                else if (genre === 'adventure' && maturity === 'adult') {
+                    // Already handled above with slide completion
+                }
+                // DEFAULT/CSS-BASED ANIMATIONS (Horror Kids, Mystery Adult, etc.)
+                else {
+                    setTimeout(() => showCurtainReveal(overlay, genre, maturity, resolve), 3000);
+                }
+            });
+        }
+
+        function showCurtainReveal(overlay, genre, maturity, resolve) {
+            // Fade entire overlay to black instead of showing curtain
+            overlay.style.transition = 'background-color 1s ease-out';
+            overlay.style.backgroundColor = '#000';
+
+            // Fade out the title
+            const titleElement = overlay.querySelector('#titleText') || overlay.querySelector('.ghost-text, .ink-text, .sparkle-text, .horror-text, .flag-text');
+            if (titleElement) {
+                titleElement.style.transition = 'opacity 1s ease-out';
+                titleElement.style.opacity = '0';
+            }
+
+            // Hide particle canvas if exists
+            const canvas = overlay.querySelector('#particleCanvas');
+            if (canvas) {
+                canvas.style.transition = 'opacity 1s ease-out';
+                canvas.style.opacity = '0';
+            }
+
+            // Hide flag SVG if exists
+            const flagSvg = overlay.querySelector('.flag-svg');
+            if (flagSvg) {
+                flagSvg.style.transition = 'opacity 1s ease-out';
+                flagSvg.style.opacity = '0';
+            }
+
+            // Wait for fade to black, then navigate
+            setTimeout(() => {
+                // Store curtain info for game.html to use
+                const curtainData = { genre, maturity };
+                console.log('🎭 Storing curtain data:', curtainData);
+                sessionStorage.setItem('showCurtain', JSON.stringify(curtainData));
+
+                // Navigate while screen is black
+                console.log('🎭 Navigating to game.html with curtain data');
+                window.location.href = `game.html?story=${storyId}`;
+            }, 1000);
+        }
+
+        // Load on page load
+        window.addEventListener('load', loadStoryPreview);
+    </script>
+</body>
+</html>

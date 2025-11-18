@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertical Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            margin: 0 auto;
+        }
+        
+        .narrative {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            height: 800px;
+            background: white;
+            padding: 20px;
+            border: 2px solid #ff8c42;
+            line-height: 1.6;
+            overflow-x: auto;
+            line-break: strict;
+            word-break: keep-all;
+        }
+        
+        .choices {
+            display: flex;
+            gap: 12px;
+            flex-direction: row;
+        }
+        
+        .choice-btn {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            height: 800px;
+            padding: 14px 16px;
+            background: white;
+            border: 2px solid #ff8c42;
+            cursor: pointer;
+        }
+        
+        ruby {
+            ruby-position: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="choices">
+            <div class="choice-btn">選択肢《せんたくし》1</div>
+            <div class="choice-btn">選択肢《せんたくし》2</div>
+            <div class="choice-btn">選択肢《せんたくし》3</div>
+            <div class="choice-btn">選択肢《せんたくし》4</div>
+        </div>
+        <div class="narrative">
+            君《きみ》は佐藤《さとう》リサさんに近《ちか》づいた。彼女《かのじょ》は警察官《けいさつかん》と話《はな》し終《お》えたばかりで、疲《つか》れた表情《ひょうじょう》をしている。
+        </div>
+    </div>
+</body>
+</html>

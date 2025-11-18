@@ -1,0 +1,3072 @@
+/* ===== PREVIEW PAGE STYLES ===== */
+
+@import url('https://fonts.googleapis.com/css2?family=Creepster&display=swap');
+
+/* Hide all narrative containers initially to prevent flash before typewriter */
+.horror-content,
+.scifi-content,
+.mystery-content,
+.fantasy-content,
+.adventure-content {
+    opacity: 0;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#preview-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ===== FANTASY SCROLL ===== */
+.preview-fantasy {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a0f0a 0%, #3d2817 50%, #1a0f0a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.preview-fantasy::before {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, transparent 20%, rgba(255, 215, 0, 0.1) 50%, transparent 80%);
+    animation: magicGlow 10s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes magicGlow {
+    0%, 100% { transform: translate(-25%, -25%) scale(1); opacity: 0.3; }
+    50% { transform: translate(-25%, -25%) scale(1.2); opacity: 0.6; }
+}
+
+.scroll-container {
+    perspective: 1000px;
+}
+
+.scroll-paper {
+    width: 600px;
+    max-width: 90vw;
+    background: linear-gradient(to bottom, #f4e7d7 0%, #e8d5ba 100%);
+    padding: 60px 50px;
+    border-radius: 10px;
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.5),
+        inset 0 0 100px rgba(139, 90, 43, 0.1);
+    border: 3px solid #8b5a2b;
+    position: relative;
+    animation: scrollUnfurl 1s ease-out;
+}
+
+@keyframes scrollUnfurl {
+    from {
+        transform: rotateX(90deg) scale(0.5);
+        opacity: 0;
+    }
+    to {
+        transform: rotateX(0deg) scale(1);
+        opacity: 1;
+    }
+}
+
+.scroll-ornament {
+    text-align: center;
+    font-size: 24px;
+    color: #8b5a2b;
+    margin: 20px 0;
+}
+
+.preview-header {
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    font-size: 32px;
+    color: #3d2817;
+    margin: 20px 0;
+    text-shadow: 1px 1px 2px rgba(139, 90, 43, 0.3);
+}
+
+.preview-content {
+    margin: 30px 0;
+}
+
+.preview-label {
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    color: #5c4033;
+    margin: 20px 0 5px 0;
+    font-weight: bold;
+}
+
+.preview-value {
+    font-family: 'Crimson Text', serif;
+    font-size: 20px;
+    color: #3d2817;
+    margin: 0 0 15px 20px;
+}
+
+.preview-narrative {
+    font-family: 'Crimson Text', serif;
+    font-size: 18px;
+    line-height: 1.8;
+    color: #3d2817;
+    margin: 30px 0;
+    text-align: left;
+    white-space: pre-wrap;
+}
+
+.preview-narrative.japanese-text {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    line-height: 2.2;
+    max-height: none;
+    overflow-y: auto;
+}
+
+.fantasy-btn {
+    background: linear-gradient(135deg, #8b5a2b 0%, #a0722b 100%);
+    border: 2px solid #5c4033;
+    color: #f4e7d7;
+    font-family: 'Cinzel', serif;
+    box-shadow: 0 4px 15px rgba(139, 90, 43, 0.5);
+}
+
+.fantasy-btn:hover {
+    background: linear-gradient(135deg, #a0722b 0%, #c4942f 100%);
+    box-shadow: 0 6px 25px rgba(196, 148, 47, 0.6);
+}
+
+/* ===== SCI-FI TERMINAL ===== */
+.preview-scifi {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.preview-scifi::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        linear-gradient(90deg, transparent 0%, rgba(0, 255, 255, 0.03) 50%, transparent 100%),
+        repeating-linear-gradient(0deg, rgba(0, 255, 255, 0.05) 0px, transparent 2px);
+    animation: scanlines 8s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes scanlines {
+    from { transform: translateY(0); }
+    to { transform: translateY(100px); }
+}
+
+.terminal-container {
+    width: 800px;
+    max-width: 90vw;
+    background: rgba(0, 20, 30, 0.9);
+    border: 2px solid #00ffff;
+    border-radius: 8px;
+    box-shadow:
+        0 0 30px rgba(0, 255, 255, 0.5),
+        inset 0 0 100px rgba(0, 255, 255, 0.1);
+    animation: terminalBoot 0.5s ease-out;
+}
+
+@keyframes terminalBoot {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.terminal-header {
+    background: rgba(0, 255, 255, 0.1);
+    padding: 15px 20px;
+    border-bottom: 1px solid #00ffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.terminal-title {
+    font-family: 'Courier New', monospace;
+    color: #00ffff;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.terminal-status {
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0.3; }
+}
+
+.terminal-body {
+    padding: 30px;
+    font-family: 'Courier New', monospace;
+    color: #00ff00;
+}
+
+.terminal-line {
+    margin: 8px 0;
+    font-size: 16px;
+    animation: typeLine 0.3s ease-out;
+}
+
+@keyframes typeLine {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.prompt {
+    color: #00ffff;
+    margin-right: 10px;
+}
+
+.terminal-data {
+    color: #ffff00;
+    margin-left: 20px;
+}
+
+.terminal-narrative {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #00ff00;
+    margin: 20px 0;
+    padding: 20px;
+    background: rgba(0, 255, 255, 0.05);
+    border-left: 3px solid #00ffff;
+    white-space: pre-wrap;
+}
+
+.terminal-narrative.japanese-text {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    max-height: none;
+    overflow-y: auto;
+    line-height: 2;
+}
+
+.scifi-btn {
+    background: linear-gradient(135deg, #003d5c 0%, #00ffff 100%);
+    border: 2px solid #00ffff;
+    color: #000;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.scifi-btn:hover {
+    background: #00ffff;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.8);
+}
+
+/* ===== MYSTERY NOTEBOOK ===== */
+.preview-mystery {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #2c2416 0%, #4a3d2f 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.notebook-container {
+    position: relative;
+    width: 700px;
+    max-width: 90vw;
+    animation: notebookOpen 0.8s ease-out;
+}
+
+@keyframes notebookOpen {
+    from {
+        transform: rotateY(90deg);
+        opacity: 0;
+    }
+    to {
+        transform: rotateY(0deg);
+        opacity: 1;
+    }
+}
+
+.notebook-page {
+    background: #f9f7e8;
+    padding: 60px 50px;
+    border-radius: 5px;
+    box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.6),
+        inset 0 0 50px rgba(0, 0, 0, 0.05);
+    border-left: 3px solid #c41e3a;
+    position: relative;
+    background-image: repeating-linear-gradient(
+        transparent,
+        transparent 31px,
+        #a8b2c1 31px,
+        #a8b2c1 32px
+    );
+}
+
+.notebook-page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50px;
+    width: 2px;
+    background: #a8b2c1;
+    pointer-events: none;
+}
+
+.notebook-header {
+    font-family: 'Courier New', monospace;
+    font-size: 28px;
+    color: #1a1a1a;
+    margin-bottom: 30px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    border-bottom: 2px solid #1a1a1a;
+    padding-bottom: 10px;
+}
+
+.notebook-lines {
+    margin: 40px 0;
+}
+
+.notebook-line {
+    margin: 25px 0;
+    padding-left: 10px;
+}
+
+.line-label {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: #666;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.line-value {
+    font-family: 'Handlee', cursive;
+    font-size: 22px;
+    color: #1a1a1a;
+    display: block;
+}
+
+.notebook-narrative {
+    font-family: 'Handlee', cursive;
+    font-size: 18px;
+    line-height: 2;
+    color: #1a1a1a;
+    margin: 30px 0;
+    padding-left: 10px;
+    white-space: pre-wrap;
+}
+
+.notebook-narrative.japanese-text {
+    font-family: 'Noto Sans JP', sans-serif;
+    line-height: 2.4;
+}
+
+.coffee-stain {
+    position: absolute;
+    bottom: 20px;
+    right: 30px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(101, 67, 33, 0.3) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.mystery-btn {
+    background: linear-gradient(135deg, #1a1a1a 0%, #3d3d3d 100%);
+    border: 2px solid #1a1a1a;
+    color: #f9f7e8;
+    font-family: 'Courier New', monospace;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.mystery-btn:hover {
+    background: linear-gradient(135deg, #3d3d3d 0%, #5a5a5a 100%);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6);
+}
+
+/* ===== HORROR DARK ===== */
+.preview-horror {
+    width: 100%;
+    height: 100%;
+    background: #0a0a0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.preview-horror::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%, rgba(139, 0, 0, 0.2) 0%, transparent 70%);
+    animation: pulse 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+.horror-container {
+    width: 600px;
+    max-width: 90vw;
+    animation: fadeInSlow 2s ease-out;
+}
+
+@keyframes fadeInSlow {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.horror-content {
+    background: rgba(20, 0, 0, 0.8);
+    padding: 60px 40px;
+    border: 1px solid #8b0000;
+    box-shadow:
+        0 0 40px rgba(139, 0, 0, 0.5),
+        inset 0 0 100px rgba(139, 0, 0, 0.1);
+}
+
+.horror-header {
+    font-family: 'Cinzel', serif;
+    font-size: 36px;
+    color: #8b0000;
+    text-align: center;
+    margin-bottom: 40px;
+    text-shadow: 0 0 10px rgba(139, 0, 0, 0.8);
+}
+
+.horror-details {
+    margin: 30px 0;
+}
+
+.horror-label {
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 20px 0 5px 0;
+}
+
+.horror-value {
+    font-family: 'Crimson Text', serif;
+    font-size: 22px;
+    color: #ccc;
+    margin: 0 0 20px 0;
+}
+
+.horror-narrative {
+    font-family: 'Crimson Text', serif;
+    font-size: 18px;
+    line-height: 1.9;
+    color: #ccc;
+    margin: 30px 0;
+    white-space: pre-wrap;
+}
+
+.horror-narrative.japanese-text {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    height: auto;
+    max-height: none;
+    width: auto;
+    max-width: 90vw;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    line-height: 2.3em;
+    letter-spacing: 0.05em;
+    padding: 2rem;
+    font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+    font-size: 1.1em;
+    line-break: strict;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    display: inline-block;
+}
+
+.horror-container.adult:has(.japanese-text),
+.horror-container.kids:has(.japanese-text) {
+    width: 90vw;
+    max-width: 1400px;
+}
+
+.horror-content.adult:has(.japanese-text),
+.horror-content.kids:has(.japanese-text) {
+    max-height: none;
+    height: auto;
+    overflow: visible;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    padding: 40px;
+    height: 100vh;
+}
+
+.horror-content.adult:has(.japanese-text) .horror-narrative,
+.horror-content.kids:has(.japanese-text) .horror-narrative {
+    flex: 0 1 auto;
+    max-width: none;
+}
+
+.horror-content.adult:has(.japanese-text) .dive-btn,
+.horror-content.kids:has(.japanese-text) .dive-btn {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    height: auto;
+    min-height: 200px;
+    width: auto;
+    padding: 30px 20px;
+    flex-shrink: 0;
+}
+
+.horror-btn {
+    background: linear-gradient(135deg, #1a0000 0%, #8b0000 100%);
+    border: 2px solid #8b0000;
+    color: #ccc;
+    font-family: 'Cinzel', serif;
+    box-shadow: 0 0 20px rgba(139, 0, 0, 0.5);
+}
+
+.horror-btn:hover {
+    background: #8b0000;
+    box-shadow: 0 0 30px rgba(139, 0, 0, 0.8);
+}
+
+/* ===== ADVENTURE DEFAULT ===== */
+.preview-adventure {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.adventure-container {
+    width: 600px;
+    max-width: 90vw;
+    text-align: center;
+    animation: bounceIn 0.8s ease-out;
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.adventure-header {
+    font-size: 42px;
+    color: white;
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    margin-bottom: 30px;
+}
+
+.adventure-card {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    margin-bottom: 30px;
+    text-align: left;
+}
+
+.adventure-card p {
+    font-size: 18px;
+    margin: 15px 0;
+    color: #333;
+}
+
+.adventure-narrative {
+    font-family: 'Crimson Text', serif;
+    font-size: 18px;
+    line-height: 1.8;
+    color: #333;
+    margin: 20px 0;
+    white-space: pre-wrap;
+    text-align: left;
+}
+
+.adventure-narrative.japanese-text {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    height: auto;
+    max-height: none;
+    width: auto;
+    max-width: 90vw;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    line-height: 2.2em;
+    letter-spacing: 0.05em;
+    padding: 2rem;
+    font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+    font-size: 1.1em;
+    line-break: strict;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    display: inline-block;
+}
+
+.adventure-container.adult:has(.japanese-text),
+.adventure-container.kids:has(.japanese-text) {
+    width: 90vw;
+    max-width: 1400px;
+}
+
+.adventure-content.adult:has(.japanese-text),
+.adventure-content.kids:has(.japanese-text) {
+    max-height: none;
+    height: auto;
+    overflow: visible;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    padding: 40px;
+    height: 100vh;
+}
+
+.adventure-content.adult:has(.japanese-text) .adventure-narrative,
+.adventure-content.kids:has(.japanese-text) .adventure-narrative {
+    flex: 0 1 auto;
+    max-width: none;
+}
+
+.adventure-content.adult:has(.japanese-text) .dive-btn,
+.adventure-content.kids:has(.japanese-text) .dive-btn {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    height: 60vh;
+    max-height: 500px;
+    width: auto;
+    padding: 30px 20px;
+    flex-shrink: 0;
+}
+
+.adventure-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.adventure-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+}
+
+/* ===== COMMON BUTTON STYLES ===== */
+.dive-btn {
+    display: block;
+    width: 100%;
+    padding: 20px;
+    font-size: 22px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    margin-top: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.dive-btn:hover {
+    transform: translateY(-2px);
+}
+
+.dive-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-text {
+    font-size: 20px;
+}
+
+.btn-icon {
+    font-size: 24px;
+}
+
+/* ===== TITLE REVEAL OVERLAY ===== */
+.title-reveal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.title-reveal {
+    font-size: 48px;
+    font-weight: bold;
+    text-align: center;
+    padding: 40px;
+}
+
+/* ===== FANTASY KIDS: Expanding bars with sparkles ===== */
+.fantasy-reveal-kids {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.fantasy-reveal-kids #particleCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.fantasy-reveal-kids .epic-title {
+    position: relative;
+    z-index: 2;
+    font-family: 'Fredoka', 'Chewy', cursive;
+    font-size: 72px;
+    font-weight: 700;
+    text-align: center;
+    color: #ff69b4;
+    opacity: 0;
+    text-shadow:
+        0 0 20px rgba(255, 105, 180, 0.8),
+        0 0 40px rgba(156, 39, 176, 0.6),
+        0 4px 10px rgba(0, 0, 0, 0.8);
+    letter-spacing: 2px;
+    padding: 40px;
+    transition: opacity 1s ease-out;
+}
+
+/* ===== FANTASY KIDS: Waving Flag Animation ===== */
+.fantasy-reveal-kids-flag {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.fantasy-reveal-kids-flag .flag-svg {
+    width: 80%;
+    max-width: 800px;
+    height: auto;
+    filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.5));
+}
+
+.fantasy-reveal-kids-flag .flag-pole {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.fantasy-reveal-kids-flag .flag-pole-top {
+    animation: fadeIn 0.5s ease-out, shine 2s ease-in-out infinite;
+}
+
+.fantasy-reveal-kids-flag .flag-cloth {
+    animation: flagWave 3s ease-in-out infinite, fadeIn 0.8s ease-out;
+    transform-origin: left center;
+}
+
+.fantasy-reveal-kids-flag .flag-text {
+    fill: rgba(255, 215, 0, 0);
+    stroke: #FF69B4;
+    stroke-width: 2;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+}
+
+.fantasy-reveal-kids-flag .flag-text tspan {
+    fill: rgba(255, 215, 0, 0);
+    stroke: #FF69B4;
+    stroke-width: 2;
+}
+
+@keyframes flagWave {
+    0%, 100% {
+        d: path('M 70 80 Q 250 60, 430 80 Q 610 100, 750 80 L 750 280 Q 610 300, 430 280 Q 250 260, 70 280 Z');
+    }
+    25% {
+        d: path('M 70 80 Q 250 70, 430 90 Q 610 90, 750 70 L 750 270 Q 610 290, 430 270 Q 250 270, 70 280 Z');
+    }
+    50% {
+        d: path('M 70 80 Q 250 80, 430 70 Q 610 80, 750 90 L 750 290 Q 610 280, 430 290 Q 250 250, 70 280 Z');
+    }
+    75% {
+        d: path('M 70 80 Q 250 70, 430 90 Q 610 90, 750 70 L 750 270 Q 610 290, 430 270 Q 250 270, 70 280 Z');
+    }
+}
+
+@keyframes drawText {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes fillText {
+    to {
+        fill: #FFD700;
+    }
+}
+
+@keyframes fantasyKidsDrawChar {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes fantasyKidsFillChar {
+    to {
+        fill: #FFD700;
+    }
+}
+
+@keyframes shine {
+    0%, 100% {
+        fill: #FFD700;
+        filter: drop-shadow(0 0 5px #FFD700);
+    }
+    50% {
+        fill: #FFF;
+        filter: drop-shadow(0 0 15px #FFD700);
+    }
+}
+
+/* ===== SCI-FI KIDS: GLaDOS resolving text ===== */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap');
+
+.scifi-reveal-kids {
+    font-family: 'Orbitron', monospace;
+    font-size: 64px;
+    font-weight: 900;
+    color: #00ffff;
+    text-shadow:
+        0 0 10px #00ffff,
+        0 0 20px #00ffff,
+        0 0 30px #00aaff;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+}
+
+.scifi-reveal-kids .resolve-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 56px;
+    color: #00ff00;
+    text-shadow: 0 0 10px #00ff00;
+}
+
+/* ===== SCI-FI ADULT: Matrix code rain ===== */
+.scifi-reveal-adult {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+}
+
+#matrixCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.matrix-title {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    font-family: 'Orbitron', monospace;
+    font-size: 72px;
+    font-weight: 900;
+    color: #0F0;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px 40px;
+    border: 3px solid #0F0;
+    border-radius: 10px;
+    box-shadow:
+        0 0 10px rgba(0, 255, 0, 0.3),
+        inset 0 0 10px rgba(0, 255, 0, 0.1);
+    text-shadow:
+        0 0 5px #0F0,
+        0 0 10px #0F0;
+    text-align: center;
+    display: none;
+    opacity: 0;
+}
+
+/* ===== MYSTERY KIDS: Letter-by-letter reveal ===== */
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
+
+.mystery-reveal-kids {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.mystery-kids-text {
+    font-family: 'Special Elite', cursive;
+    font-size: 64px;
+    font-weight: bold;
+    color: #666;
+    text-align: center;
+    position: relative;
+}
+
+.mystery-kids-text .letter {
+    display: inline-block;
+    opacity: 0;
+    animation: mysteryKidsLetterReveal 0.3s ease-out forwards;
+}
+
+@keyframes mysteryKidsLetterReveal {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== MYSTERY ADULT: Ink spread (existing, updated) ===== */
+.mystery-reveal-adult .ink-text {
+    font-family: 'Crimson Text', serif;
+    font-size: 64px;
+    font-style: italic;
+    color: transparent;
+    opacity: 0;
+    animation: inkSpread 2.5s ease-out forwards;
+}
+
+/* ===== ADVENTURE KIDS: Bouncy letter pop-in ===== */
+@import url('https://fonts.googleapis.com/css2?family=Chewy&display=swap');
+
+.adventure-reveal-kids {
+    font-family: 'Chewy', cursive;
+    font-size: 68px;
+    color: #ffc107;
+    text-shadow:
+        3px 3px 0 #f57c00,
+        6px 6px 0 #e65100,
+        0 0 20px rgba(255, 193, 7, 0.5);
+}
+
+.adventure-reveal-kids .bounce-text {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.adventure-reveal-kids .bounce-letter {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(100px) scale(0);
+    animation: bouncePop 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+@keyframes bouncePop {
+    0% {
+        opacity: 0;
+        transform: translateY(100px) scale(0) rotate(-180deg);
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(-20px) scale(1.2) rotate(10deg);
+    }
+    80% {
+        transform: translateY(10px) scale(0.9) rotate(-5deg);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotate(0deg);
+    }
+}
+
+/* ===== ADVENTURE ADULT: Cinematic sliding bars ===== */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+.adventure-reveal-adult {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px;
+    color: #d7ccc8;
+    text-shadow:
+        0 2px 0 #5d4037,
+        0 4px 8px rgba(0, 0, 0, 0.7);
+    letter-spacing: 6px;
+    position: relative;
+}
+
+@keyframes expandBar {
+    0% {
+        transform: translate(-50%, -50%) scaleY(0);
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scaleY(1);
+        opacity: 0.8;
+    }
+}
+
+.adventure-reveal-adult .slide-reveal-text {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.adventure-reveal-adult .slide-letter {
+    display: inline-block;
+    opacity: 0;
+    transform: scale(0);
+    animation: slideReveal 1.2s cubic-bezier(0.7, -0.6, 0.3, 1.5) forwards;
+}
+
+@keyframes slideReveal {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ===== CURTAIN REVEAL EFFECT ===== */
+.curtain-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    opacity: 0;
+    animation: curtainFadeIn 0.5s ease-out forwards;
+}
+
+@keyframes curtainFadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+.curtain-inner {
+    width: 100%;
+    position: absolute;
+    top: -10%;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: auto;
+    transition: transform 2s cubic-bezier(0.7, 0, 0.3, 1);
+    transform-origin: -120% top;
+    will-change: transform;
+}
+
+.curtain-container.opening .curtain-inner {
+    transform: scaleX(0);
+}
+
+.curtain-strip {
+    width: 10vw;
+    height: 120vh;
+    background-size: 100% 100%;
+    display: inline-block;
+    transform-origin: 0 0%;
+    will-change: transform;
+}
+
+/* Fantasy: Burning flame text */
+.fantasy-reveal .flame-text {
+    color: #ff6600;
+    text-shadow:
+        0 0 10px #ff6600,
+        0 0 20px #ff6600,
+        0 0 40px #ff4400,
+        0 0 80px #ff2200;
+    animation: flameFlicker 0.5s ease-in-out infinite alternate, scaleIn 1s ease-out;
+}
+
+@keyframes flameFlicker {
+    from {
+        text-shadow:
+            0 0 10px #ff6600,
+            0 0 20px #ff6600,
+            0 0 40px #ff4400,
+            0 0 80px #ff2200;
+    }
+    to {
+        text-shadow:
+            0 0 15px #ff8800,
+            0 0 30px #ff6600,
+            0 0 60px #ff4400,
+            0 0 100px #ff2200;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* EPIC ADULT FANTASY - Canvas Fire Particles */
+.fantasy-reveal-adult {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.fantasy-reveal-adult #fireCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.fantasy-reveal-adult .epic-title {
+    position: relative;
+    z-index: 2;
+    font-family: 'Cinzel', serif;
+    font-size: 72px;
+    font-weight: 700;
+    text-align: center;
+    color: #ffd700;
+    opacity: 0;
+    text-shadow:
+        0 0 20px rgba(255, 215, 0, 0.8),
+        0 0 40px rgba(255, 140, 0, 0.6),
+        0 0 60px rgba(255, 69, 0, 0.4),
+        0 4px 10px rgba(0, 0, 0, 0.8);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    padding: 40px;
+    transition: opacity 1s ease-out;
+}
+
+/* ===== HORROR ADULT: Flickering Text ===== */
+
+.horror-reveal-adult-flicker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.horror-reveal-adult-flicker .horror-text {
+    opacity: 0;
+    animation: fadeInAndFlicker 0.5s ease-out forwards, flickering 1.5s step-start 0.5s infinite;
+    color: #912914;
+    font-family: 'Creepster', cursive;
+    font-size: 96px;
+    text-align: center;
+    padding: 40px;
+    letter-spacing: 4px;
+}
+
+@keyframes fadeInAndFlicker {
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes flickering {
+    0% {
+        color: #912914;
+        text-shadow: none;
+        transform: skewX(0);
+    }
+    5% {
+        color: #912914;
+        text-shadow: none;
+        transform: skewX(0);
+    }
+    10% {
+        color: #912914;
+        text-shadow: 1px 1px #eee;
+        transform: skewX(-15deg);
+    }
+    15% {
+        color: #ccc;
+        text-shadow: none;
+        transform: skewX(-15deg);
+    }
+    20% {
+        color: #912914;
+        text-shadow: none;
+        transform: skewX(0);
+    }
+    25% {
+        color: #ccc;
+        text-shadow: 2px 2px #912914;
+        transform: skewX(0);
+    }
+    30% {
+        color: #ccc;
+        text-shadow: 2px 2px #912914;
+        transform: skewX(0);
+    }
+    35% {
+        color: #ccc;
+        text-shadow: 2px 2px #912914;
+        transform: skewX(0);
+    }
+    37% {
+        color: #ccc;
+        text-shadow: 1px 1px #eee;
+        transform: skewX(0);
+    }
+    40% {
+        color: #912914;
+        text-shadow: 1px 1px #eee;
+        transform: skewX(0);
+    }
+    45% {
+        color: #912914;
+        text-shadow: 1px 1px #eee;
+        transform: skewX(0);
+    }
+    50% {
+        color: #912914;
+        text-shadow: none;
+        transform: skewX(0);
+    }
+    55% {
+        color: #912914;
+        text-shadow: none;
+        transform: skewX(0);
+    }
+    60% {
+        color: #912914;
+        text-shadow: none;
+        transform: skewX(0);
+    }
+    65% {
+        color: #912914;
+        text-shadow: none;
+        transform: skewX(0);
+    }
+    68% {
+        color: #912914;
+        text-shadow: 1px 1px #eee;
+        transform: skewX(0);
+    }
+    70% {
+        color: #912914;
+        text-shadow: 1px 1px #eee;
+        transform: skewX(0);
+    }
+    75% {
+        color: #912914;
+        text-shadow: 1px 1px #eee;
+        transform: skewX(10deg);
+    }
+    80% {
+        color: #912914;
+        text-shadow: 1px 1px #eee;
+        transform: skewX(10deg);
+    }
+    85% {
+        color: #912914;
+        text-shadow: 1px 1px #eee;
+        transform: skewX(10deg);
+    }
+    90% {
+        color: #912914;
+        text-shadow: none;
+        transform: skewX(0);
+    }
+    95% {
+        color: #912914;
+        text-shadow: 1px 1px #eee;
+        transform: skewX(0);
+    }
+    100% {
+        color: #912914;
+        text-shadow: none;
+        transform: skewX(0);
+    }
+}
+
+/* Sci-fi: Terminal typing */
+.scifi-reveal .typing-text {
+    font-family: 'Courier New', monospace;
+    color: #00ffff;
+    text-shadow: 0 0 10px #00ffff;
+    border-right: 3px solid #00ffff;
+    white-space: nowrap;
+    overflow: hidden;
+    animation: blink-caret 0.75s step-end infinite;
+}
+
+@keyframes blink-caret {
+    from, to { border-color: transparent; }
+    50% { border-color: #00ffff; }
+}
+
+/* Mystery: Ink spreading */
+.mystery-reveal .ink-text {
+    color: #1a1a1a;
+    animation: inkSpread 2s ease-out;
+}
+
+@keyframes inkSpread {
+    from {
+        opacity: 0;
+        color: transparent;
+        text-shadow: 0 0 50px rgba(26, 26, 26, 0);
+        filter: blur(20px);
+    }
+    to {
+        opacity: 1;
+        color: #d4d4d4;
+        text-shadow: none;
+        filter: blur(0);
+    }
+}
+
+/* Horror Kids: Spooky Fade-In with Wobble */
+.horror-reveal.kids .ghost-text {
+    font-family: 'Chewy', cursive;
+    font-size: 72px;
+    color: #ffd700;
+    text-shadow:
+        0 0 20px #ff8c00,
+        0 0 40px #9370db,
+        2px 2px 0 #5b3a9d,
+        -2px -2px 0 #5b3a9d;
+    animation: spookyAppear 2s ease-out forwards, ghostWobble 2s ease-in-out 2s infinite;
+    opacity: 0;
+}
+
+@keyframes spookyAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+        filter: blur(10px);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.1);
+        filter: blur(5px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes ghostWobble {
+    0%, 100% {
+        transform: rotate(0deg) translateY(0);
+    }
+    25% {
+        transform: rotate(-3deg) translateY(-5px);
+    }
+    50% {
+        transform: rotate(0deg) translateY(-8px);
+    }
+    75% {
+        transform: rotate(3deg) translateY(-5px);
+    }
+}
+
+/* Horror Adult: Blood drip */
+.horror-reveal.adult .blood-text {
+    font-family: 'Special Elite', cursive;
+    color: #8b0000;
+    text-shadow: 0 0 20px #8b0000;
+    animation: bloodDrip 2s ease-out;
+}
+
+@keyframes bloodDrip {
+    0% {
+        transform: translateY(-100px);
+        opacity: 0;
+        filter: blur(10px);
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+/* Default: Sparkle */
+.default-reveal .sparkle-text {
+    color: #fff;
+    text-shadow: 0 0 20px #667eea;
+    animation: sparkle 1.5s ease-out;
+}
+
+@keyframes sparkle {
+    0% {
+        opacity: 0;
+        transform: scale(0.5) rotate(-5deg);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.1) rotate(2deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+/* ===============================================
+   HORROR THEMES - KIDS VS ADULT
+   =============================================== */
+
+/* ===== KIDS HORROR - PEPPA PIG HALLOWEEN ===== */
+@import url('https://fonts.googleapis.com/css2?family=Chewy&family=Fredoka:wght@400;600&display=swap');
+
+.preview-horror.kids {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #2d1b69 0%, #5b3a9d 50%, #2d1b69 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.preview-horror.kids::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(255, 140, 0, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(138, 43, 226, 0.3) 0%, transparent 50%);
+    animation: friendlyGlow 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes friendlyGlow {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+.horror-container.kids {
+    width: 700px;
+    max-width: 90vw;
+    animation: bounceInKids 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    position: relative;
+    z-index: 10;
+}
+
+@keyframes bounceInKids {
+    0% {
+        opacity: 0;
+        transform: scale(0.3) rotate(-10deg);
+    }
+    50% {
+        transform: scale(1.1) rotate(5deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+.horror-content.kids {
+    background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+    padding: 50px 40px;
+    border-radius: 40px;
+    border: 8px solid #5b3a9d;
+    box-shadow:
+        0 20px 60px rgba(91, 58, 157, 0.6),
+        inset 0 0 40px rgba(255, 255, 255, 0.3);
+    position: relative;
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.horror-content.kids::before {
+    content: '👻';
+    position: absolute;
+    top: -30px;
+    right: -20px;
+    font-size: 120px;
+    opacity: 0.2;
+    animation: floatGhost 3s ease-in-out infinite;
+}
+
+@keyframes floatGhost {
+    0%, 100% { transform: translateY(0px) rotate(-5deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+.horror-content.kids::after {
+    content: '🎃';
+    position: absolute;
+    bottom: -30px;
+    left: -20px;
+    font-size: 100px;
+    opacity: 0.2;
+    animation: wobblePumpkin 2s ease-in-out infinite;
+}
+
+@keyframes wobblePumpkin {
+    0%, 100% { transform: rotate(-10deg) scale(1); }
+    50% { transform: rotate(10deg) scale(1.1); }
+}
+
+.horror-narrative.kids {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 22px;
+    line-height: 1.8;
+    color: #2d1b69;
+    margin: 30px 0;
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5);
+    white-space: pre-wrap;
+}
+
+.horror-narrative.kids.japanese-text {
+    font-family: 'M PLUS Rounded 1c', 'Fredoka', sans-serif;
+    line-height: 2.2;
+}
+
+.horror-btn.kids {
+    background: linear-gradient(135deg, #5b3a9d 0%, #8b5cf6 100%);
+    border: 6px solid #ffd700;
+    color: #fff;
+    font-family: 'Chewy', cursive;
+    font-size: 28px;
+    padding: 20px 40px;
+    border-radius: 50px;
+    box-shadow: 
+        0 10px 30px rgba(91, 58, 157, 0.5),
+        inset 0 2px 0 rgba(255, 255, 255, 0.3);
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.horror-btn.kids::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.horror-btn.kids:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.horror-btn.kids:hover {
+    transform: scale(1.1) rotate(-2deg);
+    box-shadow: 
+        0 15px 40px rgba(91, 58, 157, 0.7),
+        inset 0 2px 0 rgba(255, 255, 255, 0.5);
+}
+
+.horror-btn.kids:active {
+    transform: scale(0.95) rotate(0deg);
+}
+
+/* Particle container for kids horror */
+#kids-horror-particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 5;
+}
+
+
+/* ===== ADULT HORROR - SILENT HILL GLITCH ===== */
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime&family=Special+Elite&display=swap');
+
+.preview-horror.adult {
+    width: 100%;
+    height: 100%;
+    background: #0a0a0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* VHS grain overlay */
+.preview-horror.adult::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/></filter><rect width="300" height="300" filter="url(%23noise)" opacity="0.05"/></svg>');
+    opacity: 0.8;
+    animation: grain 0.5s steps(10) infinite;
+    pointer-events: none;
+    z-index: 100;
+    mix-blend-mode: overlay;
+}
+
+@keyframes grain {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-5%, -5%); }
+    20% { transform: translate(3%, 7%); }
+    30% { transform: translate(-7%, 3%); }
+    40% { transform: translate(5%, -7%); }
+    50% { transform: translate(-3%, 5%); }
+    60% { transform: translate(7%, -3%); }
+    70% { transform: translate(-5%, 7%); }
+    80% { transform: translate(3%, -5%); }
+    90% { transform: translate(5%, 3%); }
+}
+
+/* Scanline effect */
+.preview-horror.adult::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.1),
+        rgba(0, 0, 0, 0.1) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    pointer-events: none;
+    z-index: 99;
+    animation: scanline 8s linear infinite;
+}
+
+@keyframes scanline {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(100%); }
+}
+
+.horror-container.adult {
+    width: 600px;
+    max-width: 90vw;
+    animation: glitchIn 1.5s ease-out;
+    position: relative;
+    z-index: 10;
+}
+
+.horror-container.adult::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(139, 0, 0, 0.3), transparent);
+    background-size: 200% 100%;
+    background-position: -100% 0;
+    animation: glitchSweep 3s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 100;
+}
+
+@keyframes glitchIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-100px);
+        filter: blur(10px);
+    }
+    20% {
+        opacity: 1;
+        transform: translateX(20px);
+    }
+    25% {
+        transform: translateX(-10px);
+    }
+    30% {
+        transform: translateX(5px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+        filter: blur(0);
+    }
+}
+
+.horror-content.adult {
+    background:
+        linear-gradient(135deg, rgba(20, 0, 0, 0.95) 0%, rgba(40, 0, 0, 0.95) 100%);
+    padding: 60px 40px;
+    border: 2px solid #8b0000;
+    box-shadow:
+        0 0 40px rgba(139, 0, 0, 0.8),
+        inset 0 0 100px rgba(139, 0, 0, 0.2),
+        0 0 0 1px rgba(255, 0, 0, 0.1);
+    position: relative;
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+
+@keyframes glitchSweep {
+    0%, 100% { background-position: -100% 0; }
+    50% { background-position: 100% 0; }
+}
+
+.horror-narrative.adult {
+    font-family: 'Courier Prime', monospace;
+    font-size: 18px;
+    line-height: 1.9;
+    color: #ccc;
+    margin: 30px 0;
+    text-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
+    white-space: pre-wrap;
+    animation: textFlicker 0.1s infinite;
+}
+
+@keyframes textFlicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.95; }
+}
+
+.horror-narrative.adult.japanese-text {
+    font-family: 'Noto Sans JP', 'Courier Prime', monospace;
+    line-height: 2.4;
+}
+
+/* Glitch text effect */
+.horror-narrative.adult.glitch {
+    animation: glitchText 0.3s infinite;
+}
+
+@keyframes glitchText {
+    0% {
+        text-shadow: 0.05em 0 0 rgba(255, 0, 0, 0.75),
+                    -0.05em -0.025em 0 rgba(0, 255, 0, 0.75),
+                    -0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+    14% {
+        text-shadow: 0.05em 0 0 rgba(255, 0, 0, 0.75),
+                    -0.05em -0.025em 0 rgba(0, 255, 0, 0.75),
+                    -0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+    15% {
+        text-shadow: -0.05em -0.025em 0 rgba(255, 0, 0, 0.75),
+                    0.025em 0.025em 0 rgba(0, 255, 0, 0.75),
+                    -0.05em -0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+    49% {
+        text-shadow: -0.05em -0.025em 0 rgba(255, 0, 0, 0.75),
+                    0.025em 0.025em 0 rgba(0, 255, 0, 0.75),
+                    -0.05em -0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+    50% {
+        text-shadow: 0.025em 0.05em 0 rgba(255, 0, 0, 0.75),
+                    0.05em 0 0 rgba(0, 255, 0, 0.75),
+                    0 -0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+    99% {
+        text-shadow: 0.025em 0.05em 0 rgba(255, 0, 0, 0.75),
+                    0.05em 0 0 rgba(0, 255, 0, 0.75),
+                    0 -0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+    100% {
+        text-shadow: -0.025em 0 0 rgba(255, 0, 0, 0.75),
+                    -0.025em -0.025em 0 rgba(0, 255, 0, 0.75),
+                    -0.025em -0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+}
+
+.horror-btn.adult {
+    background: linear-gradient(135deg, #1a0000 0%, #3d0000 100%);
+    border: 2px solid #8b0000;
+    color: #ccc;
+    font-family: 'Special Elite', cursive;
+    font-size: 22px;
+    padding: 18px 40px;
+    box-shadow: 
+        0 0 20px rgba(139, 0, 0, 0.6),
+        inset 0 0 20px rgba(139, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 2px;
+}
+
+.horror-btn.adult::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(139, 0, 0, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s, height 0.4s;
+}
+
+.horror-btn.adult:hover::before {
+    width: 200%;
+    height: 200%;
+}
+
+.horror-btn.adult:hover {
+    border-color: #ff0000;
+    box-shadow: 
+        0 0 30px rgba(255, 0, 0, 0.8),
+        inset 0 0 30px rgba(139, 0, 0, 0.3);
+    text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+    animation: btnGlitch 0.3s infinite;
+}
+
+@keyframes btnGlitch {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-2px, 2px); }
+    50% { transform: translate(2px, -2px); }
+    75% { transform: translate(-2px, -2px); }
+}
+
+.horror-btn.adult:active {
+    transform: scale(0.98);
+}
+
+/* Particle container for adult horror */
+#adult-horror-particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* Particle containers for all genres */
+#kids-scifi-particles,
+#adult-scifi-particles,
+#kids-mystery-particles,
+#adult-mystery-particles,
+#kids-fantasy-particles,
+#adult-fantasy-particles,
+#kids-adventure-particles,
+#adult-adventure-particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* Blood drip effect */
+.blood-drip {
+    position: absolute;
+    width: 2px;
+    height: 0;
+    background: linear-gradient(to bottom, transparent, #8b0000);
+    animation: drip 2s ease-in infinite;
+    opacity: 0.7;
+}
+
+@keyframes drip {
+    0% {
+        height: 0;
+        top: 0;
+    }
+    100% {
+        height: 100px;
+        top: 100vh;
+    }
+}
+
+/* ===== CUSTOM SCROLLBARS ===== */
+
+/* Kids Horror - Playful Purple Scrollbar */
+.horror-content.kids::-webkit-scrollbar {
+    width: 12px;
+}
+
+.horror-content.kids::-webkit-scrollbar-track {
+    background: rgba(91, 58, 157, 0.3);
+    border-radius: 10px;
+    margin: 10px;
+}
+
+.horror-content.kids::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #5b3a9d 0%, #8b5cf6 100%);
+    border-radius: 10px;
+    border: 2px solid #ffd700;
+}
+
+.horror-content.kids::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #7c52cc 0%, #a78bfa 100%);
+}
+
+/* Adult Horror - Blood Red Scrollbar */
+.horror-content.adult::-webkit-scrollbar {
+    width: 10px;
+}
+
+.horror-content.adult::-webkit-scrollbar-track {
+    background: rgba(139, 0, 0, 0.2);
+    border-left: 1px solid #8b0000;
+}
+
+.horror-content.adult::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #8b0000 0%, #ff0000 50%, #8b0000 100%);
+    border-left: 1px solid #ff0000;
+}
+
+.horror-content.adult::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #ff0000 0%, #ff4444 50%, #ff0000 100%);
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
+/* Firefox scrollbar */
+.horror-content.kids {
+    scrollbar-width: thin;
+    scrollbar-color: #5b3a9d rgba(91, 58, 157, 0.3);
+}
+
+.horror-content.adult {
+    scrollbar-width: thin;
+    scrollbar-color: #8b0000 rgba(139, 0, 0, 0.2);
+}
+
+/* ========================================
+   SCI-FI THEMES
+   ======================================== */
+
+/* Kids Sci-Fi - Bright space adventure */
+.preview-scifi.kids {
+    background: linear-gradient(135deg, #001428 0%, #0a3d62 50%, #1e5f8c 100%);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.scifi-container.kids {
+    width: 700px;
+    max-width: 90vw;
+    position: relative;
+    z-index: 10;
+    animation: floatIn 1s ease-out;
+}
+
+@keyframes floatIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.scifi-content.kids {
+    background: linear-gradient(135deg, rgba(10, 61, 98, 0.95) 0%, rgba(30, 95, 140, 0.95) 100%);
+    border: 3px solid #00ffff;
+    border-radius: 20px;
+    padding: 50px 40px;
+    box-shadow:
+        0 0 40px rgba(0, 255, 255, 0.6),
+        inset 0 0 60px rgba(0, 255, 255, 0.1);
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+}
+
+.scifi-narrative.kids {
+    font-family: 'Courier New', monospace;
+    font-size: 17px;
+    line-height: 1.8;
+    color: #00ffff;
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+    margin-bottom: 30px;
+}
+
+.scifi-btn.kids {
+    background: linear-gradient(135deg, #00ffff 0%, #00aaff 100%);
+    color: #001428;
+    border: 3px solid #00ffff;
+    box-shadow:
+        0 4px 0 #007799,
+        0 8px 20px rgba(0, 255, 255, 0.4);
+    font-weight: 700;
+}
+
+.scifi-btn.kids:hover {
+    transform: translateY(-4px);
+    box-shadow:
+        0 8px 0 #007799,
+        0 12px 30px rgba(0, 255, 255, 0.6);
+}
+
+/* Adult Sci-Fi - Dark cyberpunk */
+.preview-scifi.adult {
+    background: #000000;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.scifi-container.adult {
+    width: 600px;
+    max-width: 90vw;
+    position: relative;
+    z-index: 10;
+    animation: glitchIn 1s ease-out;
+}
+
+.scifi-content.adult {
+    background: linear-gradient(135deg, rgba(0, 20, 0, 0.95) 0%, rgba(0, 40, 0, 0.95) 100%);
+    border: 2px solid #00ff00;
+    padding: 60px 40px;
+    box-shadow:
+        0 0 40px rgba(0, 255, 0, 0.5),
+        inset 0 0 100px rgba(0, 255, 0, 0.05);
+    position: relative;
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.scifi-narrative.adult {
+    font-family: 'Courier Prime', monospace;
+    font-size: 16px;
+    line-height: 1.9;
+    color: #00ff00;
+    text-shadow: 0 0 3px rgba(0, 255, 0, 0.7);
+    margin-bottom: 30px;
+}
+
+.scifi-narrative.japanese-text {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    height: auto;
+    max-height: none;
+    width: auto;
+    max-width: 90vw;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    line-height: 2.2em;
+    letter-spacing: 0.05em;
+    padding: 2rem;
+    font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+    font-size: 1.1em;
+    line-break: strict;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    display: inline-block;
+}
+
+.scifi-container.adult:has(.japanese-text),
+.scifi-container.kids:has(.japanese-text) {
+    width: 90vw;
+    max-width: 1400px;
+}
+
+.scifi-content.adult:has(.japanese-text),
+.scifi-content.kids:has(.japanese-text) {
+    max-height: none;
+    height: auto;
+    overflow: visible;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    padding: 40px;
+    height: 100vh;
+}
+
+.scifi-content.adult:has(.japanese-text) .scifi-narrative,
+.scifi-content.kids:has(.japanese-text) .scifi-narrative {
+    flex: 0 1 auto;
+    max-width: none;
+}
+
+.scifi-content.adult:has(.japanese-text) .dive-btn,
+.scifi-content.kids:has(.japanese-text) .dive-btn {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    height: 60vh;
+    max-height: 500px;
+    width: auto;
+    padding: 30px 20px;
+    flex-shrink: 0;
+}
+
+.scifi-btn.adult {
+    background: linear-gradient(135deg, #00ff00 0%, #00aa00 100%);
+    color: #000000;
+    border: 2px solid #00ff00;
+    box-shadow:
+        0 4px 0 #006600,
+        0 8px 20px rgba(0, 255, 0, 0.4);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.scifi-btn.adult:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 6px 0 #006600,
+        0 10px 30px rgba(0, 255, 0, 0.6);
+}
+
+/* Glitch text effect for adult scifi */
+.glitch-text {
+    animation: glitchAnim 0.1s;
+}
+
+@keyframes glitchAnim {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
+}
+
+/* Scanline effect for adult scifi */
+.scifi-content.adult::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 255, 0, 0.03) 0px,
+        rgba(0, 255, 0, 0.03) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* Scrollbars for scifi */
+.scifi-content.kids::-webkit-scrollbar {
+    width: 10px;
+}
+
+.scifi-content.kids::-webkit-scrollbar-track {
+    background: rgba(0, 255, 255, 0.2);
+    border-left: 1px solid #00ffff;
+}
+
+.scifi-content.kids::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #00ffff 0%, #00aaff 100%);
+    border-left: 1px solid #00ffff;
+}
+
+.scifi-content.adult::-webkit-scrollbar {
+    width: 10px;
+}
+
+.scifi-content.adult::-webkit-scrollbar-track {
+    background: rgba(0, 255, 0, 0.1);
+    border-left: 1px solid #00ff00;
+}
+
+.scifi-content.adult::-webkit-scrollbar-thumb {
+    background: #00ff00;
+    border-left: 1px solid #00ff00;
+}
+
+.scifi-content.kids {
+    scrollbar-width: thin;
+    scrollbar-color: #00ffff rgba(0, 255, 255, 0.2);
+}
+
+.scifi-content.adult {
+    scrollbar-width: thin;
+    scrollbar-color: #00ff00 rgba(0, 255, 0, 0.1);
+}
+
+/* ========================================
+   MYSTERY THEMES
+   ======================================== */
+
+/* Kids Mystery - Detective notebook */
+.preview-mystery.kids {
+    background: linear-gradient(135deg, #f4e4bc 0%, #e8d5a8 100%);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.mystery-container.kids {
+    width: 700px;
+    max-width: 90vw;
+    position: relative;
+    z-index: 10;
+    animation: slideIn 0.8s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.mystery-content.kids {
+    background: #fff9e6;
+    border: 3px solid #8b7355;
+    border-radius: 10px;
+    padding: 50px 40px;
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.2),
+        inset 0 0 100px rgba(255, 152, 0, 0.1);
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.mystery-narrative.kids {
+    font-family: 'Handlee', cursive;
+    font-size: 18px;
+    line-height: 1.8;
+    color: #3e2723;
+    margin-bottom: 30px;
+}
+
+.mystery-btn.kids {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: white;
+    border: 3px solid #e65100;
+    box-shadow: 0 4px 0 #bf360c;
+    font-weight: 700;
+}
+
+.mystery-btn.kids:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 0 #bf360c;
+}
+
+/* Adult Mystery - Film noir */
+.preview-mystery.adult {
+    background: #1a1a1a;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.mystery-container.adult {
+    width: 600px;
+    max-width: 90vw;
+    position: relative;
+    z-index: 10;
+    animation: fadeInNoir 1s ease-out;
+}
+
+@keyframes fadeInNoir {
+    from {
+        opacity: 0;
+        filter: brightness(0);
+    }
+    to {
+        opacity: 1;
+        filter: brightness(1);
+    }
+}
+
+.mystery-content.adult {
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.95) 0%, rgba(50, 50, 50, 0.95) 100%);
+    border: 2px solid #6c757d;
+    padding: 60px 40px;
+    box-shadow:
+        0 0 50px rgba(0, 0, 0, 0.8),
+        inset 0 0 100px rgba(108, 117, 125, 0.1);
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.mystery-narrative.adult {
+    font-family: 'Crimson Text', serif;
+    font-size: 17px;
+    line-height: 1.9;
+    color: #d4d4d4;
+    margin-bottom: 30px;
+    font-style: italic;
+}
+
+
+/* Ink brush spreading effect for Japanese text */
+@keyframes inkSpread {
+    0% {
+        opacity: 0;
+        filter: blur(3px) contrast(0.8);
+        transform: translateX(-10px);
+    }
+    60% {
+        filter: blur(1px) contrast(1.1);
+    }
+    100% {
+        opacity: 1;
+        filter: blur(0) contrast(1);
+        transform: translateX(0);
+    }
+}
+
+.mystery-container.adult:has(.japanese-text),
+.mystery-container.kids:has(.japanese-text) {
+    width: 90vw;
+    max-width: 1400px;
+}
+
+.mystery-content.adult:has(.japanese-text),
+.mystery-content.kids:has(.japanese-text) {
+    max-height: none;
+    height: auto;
+    min-height: auto;
+    overflow: visible;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    padding: 40px;
+}
+
+.mystery-content.adult:has(.japanese-text) .mystery-narrative,
+.mystery-content.kids:has(.japanese-text) .mystery-narrative {
+    flex: 0 0 auto;
+    max-width: none;
+    width: auto;
+}
+
+.mystery-content.adult:has(.japanese-text) .dive-btn,
+.mystery-content.kids:has(.japanese-text) .dive-btn {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    height: 60vh;
+    max-height: 500px;
+    width: auto;
+    padding: 30px 20px;
+    flex-shrink: 0;
+}
+
+.mystery-btn.adult {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+    border: 2px solid #343a40;
+    box-shadow: 0 4px 0 #212529;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* ========================================
+   FANTASY THEMES
+   ======================================== */
+
+/* Kids Fantasy - Magical storybook */
+.preview-fantasy.kids {
+    background: linear-gradient(135deg, #e1bee7 0%, #f3e5f5 50%, #e8eaf6 100%);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.fantasy-container.kids {
+    width: 700px;
+    max-width: 90vw;
+    position: relative;
+    z-index: 10;
+    animation: magicAppear 1s ease-out;
+}
+
+@keyframes magicAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) rotate(-5deg);
+    }
+    50% {
+        transform: scale(1.05) rotate(2deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+.fantasy-content.kids {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(243, 229, 245, 0.95) 100%);
+    border: 4px solid #9c27b0;
+    border-radius: 20px;
+    padding: 50px 40px;
+    box-shadow:
+        0 0 40px rgba(156, 39, 176, 0.6),
+        inset 0 0 60px rgba(156, 39, 176, 0.1);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.fantasy-narrative.kids {
+    font-family: 'Crimson Text', serif;
+    font-size: 18px;
+    line-height: 1.8;
+    color: #4a148c;
+    margin-bottom: 30px;
+}
+
+.fantasy-btn.kids {
+    background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+    color: white;
+    border: 3px solid #6a1b9a;
+    box-shadow:
+        0 4px 0 #4a148c,
+        0 8px 20px rgba(156, 39, 176, 0.4);
+}
+
+/* Adult Fantasy - Dark epic */
+.preview-fantasy.adult {
+    background: linear-gradient(135deg, #1a0000 0%, #330000 50%, #1a0d00 100%);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.fantasy-container.adult {
+    width: 600px;
+    max-width: 90vw;
+    position: relative;
+    z-index: 10;
+    animation: epicRise 1.2s ease-out;
+}
+
+@keyframes epicRise {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fantasy-content.adult {
+    background: linear-gradient(135deg, rgba(26, 0, 0, 0.95) 0%, rgba(51, 0, 0, 0.95) 100%);
+    border: 2px solid #8b0000;
+    padding: 60px 40px;
+    box-shadow:
+        0 0 40px rgba(139, 0, 0, 0.6),
+        inset 0 0 100px rgba(255, 69, 0, 0.1);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.fantasy-narrative.adult {
+    font-family: 'Cinzel', serif;
+    font-size: 17px;
+    line-height: 1.9;
+    color: #ffd700;
+    margin-bottom: 30px;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+}
+
+.fantasy-narrative.japanese-text {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    height: auto;
+    max-height: none;
+    width: auto;
+    max-width: 90vw;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    line-height: 2.2em;
+    letter-spacing: 0.05em;
+    padding: 2rem;
+    font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+    font-size: 1.1em;
+    line-break: strict;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    display: inline-block;
+}
+
+.fantasy-container.adult:has(.japanese-text),
+.fantasy-container.kids:has(.japanese-text) {
+    width: 90vw;
+    max-width: 1400px;
+}
+
+.fantasy-content.adult:has(.japanese-text),
+.fantasy-content.kids:has(.japanese-text) {
+    max-height: none;
+    height: auto;
+    overflow: visible;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    padding: 40px;
+    height: 100vh;
+}
+
+.fantasy-content.adult:has(.japanese-text) .fantasy-narrative,
+.fantasy-content.kids:has(.japanese-text) .fantasy-narrative {
+    flex: 0 1 auto;
+    max-width: none;
+}
+
+.fantasy-content.adult:has(.japanese-text) .dive-btn,
+.fantasy-content.kids:has(.japanese-text) .dive-btn {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    height: 60vh;
+    max-height: 500px;
+    width: auto;
+    padding: 30px 20px;
+    flex-shrink: 0;
+}
+
+.fantasy-btn.adult {
+    background: linear-gradient(135deg, #8b0000 0%, #b30000 100%);
+    color: #ffd700;
+    border: 2px solid #ff4500;
+    box-shadow:
+        0 4px 0 #660000,
+        0 8px 20px rgba(139, 0, 0, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* ========================================
+   ADVENTURE THEMES
+   ======================================== */
+
+/* Kids Adventure - Treasure map */
+.preview-adventure.kids {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 50%, #90caf9 100%);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.adventure-container.kids {
+    width: 700px;
+    max-width: 90vw;
+    position: relative;
+    z-index: 10;
+    animation: bounceIn 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.adventure-content.kids {
+    background: linear-gradient(135deg, rgba(255, 249, 230, 0.95) 0%, rgba(255, 243, 224, 0.95) 100%);
+    border: 4px solid #ff9800;
+    border-radius: 15px;
+    padding: 50px 40px;
+    box-shadow:
+        0 10px 30px rgba(255, 152, 0, 0.3),
+        inset 0 0 60px rgba(255, 193, 7, 0.1);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.adventure-narrative.kids {
+    font-family: 'Crimson Text', serif;
+    font-size: 18px;
+    line-height: 1.8;
+    color: #5d4037;
+    margin-bottom: 30px;
+}
+
+.adventure-btn.kids {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    color: #3e2723;
+    border: 3px solid #f57c00;
+    box-shadow:
+        0 4px 0 #e65100,
+        0 8px 20px rgba(255, 193, 7, 0.4);
+    font-weight: 700;
+}
+
+/* Adult Adventure - Rugged expedition */
+.preview-adventure.adult {
+    background: linear-gradient(135deg, #3e2723 0%, #5d4037 50%, #6d4c41 100%);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.adventure-container.adult {
+    width: 600px;
+    max-width: 90vw;
+    position: relative;
+    z-index: 10;
+    animation: ruggedEntry 1s ease-out;
+}
+
+@keyframes ruggedEntry {
+    from {
+        opacity: 0;
+        transform: translateX(100px) rotate(5deg);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) rotate(0deg);
+    }
+}
+
+.adventure-content.adult {
+    background: linear-gradient(135deg, rgba(62, 39, 35, 0.95) 0%, rgba(93, 64, 55, 0.95) 100%);
+    border: 3px solid #795548;
+    padding: 60px 40px;
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.5),
+        inset 0 0 80px rgba(121, 85, 72, 0.2);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.adventure-narrative.adult {
+    font-family: 'Crimson Text', serif;
+    font-size: 17px;
+    line-height: 1.9;
+    color: #d7ccc8;
+    margin-bottom: 30px;
+}
+
+.adventure-btn.adult {
+    background: linear-gradient(135deg, #795548 0%, #6d4c41 100%);
+    color: #ffecb3;
+    border: 2px solid #5d4037;
+    box-shadow:
+        0 4px 0 #4e342e,
+        0 8px 20px rgba(121, 85, 72, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* Scrollbars for all themes */
+.mystery-content.kids::-webkit-scrollbar,
+.fantasy-content.kids::-webkit-scrollbar,
+.adventure-content.kids::-webkit-scrollbar {
+    width: 10px;
+}
+
+.mystery-content.kids::-webkit-scrollbar-thumb {
+    background: #ff9800;
+}
+
+.fantasy-content.kids::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #9c27b0 0%, #7b1fa2 100%);
+}
+
+.adventure-content.kids::-webkit-scrollbar-thumb {
+    background: #ffc107;
+}
+
+.mystery-content.adult::-webkit-scrollbar,
+.fantasy-content.adult::-webkit-scrollbar,
+.adventure-content.adult::-webkit-scrollbar {
+    width: 10px;
+}
+
+.mystery-content.adult::-webkit-scrollbar-thumb {
+    background: #6c757d;
+}
+
+.fantasy-content.adult::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #8b0000 0%, #ff4500 100%);
+}
+
+.adventure-content.adult::-webkit-scrollbar-thumb {
+    background: #795548;
+}
+
+/* Inline display for all Japanese narrative spans and ruby */
+.mystery-narrative.adult.japanese-text > span,
+.mystery-narrative.kids.japanese-text > span,
+.mystery-narrative.adult.japanese-text > ruby,
+.mystery-narrative.kids.japanese-text > ruby,
+.scifi-narrative.adult.japanese-text > span,
+.scifi-narrative.kids.japanese-text > span,
+.scifi-narrative.adult.japanese-text > ruby,
+.scifi-narrative.kids.japanese-text > ruby,
+.horror-narrative.adult.japanese-text > span,
+.horror-narrative.kids.japanese-text > span,
+.horror-narrative.adult.japanese-text > ruby,
+.horror-narrative.kids.japanese-text > ruby,
+.adventure-narrative.adult.japanese-text > span,
+.adventure-narrative.kids.japanese-text > span,
+.adventure-narrative.adult.japanese-text > ruby,
+.adventure-narrative.kids.japanese-text > ruby,
+.fantasy-narrative.adult.japanese-text > span,
+.fantasy-narrative.kids.japanese-text > span,
+.fantasy-narrative.adult.japanese-text > ruby,
+.fantasy-narrative.kids.japanese-text > ruby {
+    display: inline !important;
+}
+
+/* Ruby positioning for all vertical Japanese text */
+.mystery-narrative.adult.japanese-text ruby,
+.mystery-narrative.kids.japanese-text ruby,
+.scifi-narrative.adult.japanese-text ruby,
+.scifi-narrative.kids.japanese-text ruby,
+.horror-narrative.adult.japanese-text ruby,
+.horror-narrative.kids.japanese-text ruby,
+.adventure-narrative.adult.japanese-text ruby,
+.adventure-narrative.kids.japanese-text ruby,
+.fantasy-narrative.adult.japanese-text ruby,
+.fantasy-narrative.kids.japanese-text ruby {
+    ruby-position: right;
+}
+
+.mystery-narrative.adult.japanese-text rt,
+.mystery-narrative.kids.japanese-text rt,
+.scifi-narrative.adult.japanese-text rt,
+.scifi-narrative.kids.japanese-text rt,
+.horror-narrative.adult.japanese-text rt,
+.horror-narrative.kids.japanese-text rt,
+.adventure-narrative.adult.japanese-text rt,
+.adventure-narrative.kids.japanese-text rt,
+.fantasy-narrative.adult.japanese-text rt,
+.fantasy-narrative.kids.japanese-text rt {
+    font-size: 0.5em;
+}
+
+/* Override all genre-specific Japanese styles with proper specificity */
+.mystery-narrative.adult.japanese-text,
+.mystery-narrative.kids.japanese-text,
+.scifi-narrative.adult.japanese-text,
+.scifi-narrative.kids.japanese-text,
+.horror-narrative.adult.japanese-text,
+.horror-narrative.kids.japanese-text,
+.adventure-narrative.adult.japanese-text,
+.adventure-narrative.kids.japanese-text,
+.fantasy-narrative.adult.japanese-text,
+.fantasy-narrative.kids.japanese-text {
+    writing-mode: vertical-rl !important;
+    text-orientation: upright !important;
+    height: 50vh !important;
+    max-height: 50vh !important;
+    width: fit-content !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    overflow-x: visible;
+    overflow-y: visible;
+    line-height: 1.5em !important;
+    letter-spacing: 0.15em !important; /* 150% wider spacing between vertical lines */
+    padding: 2rem;
+    font-family: 'Noto Serif JP', 'Yu Mincho', serif !important;
+    font-size: 1.1em !important;
+    line-break: strict;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    display: inline-block !important;
+}
+
+/* Force ruby position for all Japanese vertical text */
+.mystery-narrative.adult.japanese-text ruby,
+.mystery-narrative.kids.japanese-text ruby,
+.scifi-narrative.adult.japanese-text ruby,
+.scifi-narrative.kids.japanese-text ruby,
+.horror-narrative.adult.japanese-text ruby,
+.horror-narrative.kids.japanese-text ruby,
+.adventure-narrative.adult.japanese-text ruby,
+.adventure-narrative.kids.japanese-text ruby,
+.fantasy-narrative.adult.japanese-text ruby,
+.fantasy-narrative.kids.japanese-text ruby {
+    ruby-position: right !important;
+}
+
+.mystery-narrative.adult.japanese-text rt,
+.mystery-narrative.kids.japanese-text rt,
+.scifi-narrative.adult.japanese-text rt,
+.scifi-narrative.kids.japanese-text rt,
+.horror-narrative.adult.japanese-text rt,
+.horror-narrative.kids.japanese-text rt,
+.adventure-narrative.adult.japanese-text rt,
+.adventure-narrative.kids.japanese-text rt,
+.fantasy-narrative.adult.japanese-text rt,
+.fantasy-narrative.kids.japanese-text rt {
+    font-size: 0.5em !important;
+}
+
+/* Try webkit prefix for ruby position */
+.mystery-narrative.adult.japanese-text ruby,
+.mystery-narrative.kids.japanese-text ruby,
+.scifi-narrative.adult.japanese-text ruby,
+.scifi-narrative.kids.japanese-text ruby,
+.horror-narrative.adult.japanese-text ruby,
+.horror-narrative.kids.japanese-text ruby,
+.adventure-narrative.adult.japanese-text ruby,
+.adventure-narrative.kids.japanese-text ruby,
+.fantasy-narrative.adult.japanese-text ruby,
+.fantasy-narrative.kids.japanese-text ruby {
+    -webkit-ruby-position: after !important;
+    ruby-position: under !important;
+}
+
+/* Correct ruby position for vertical-rl: over places furigana to the RIGHT */
+.mystery-narrative.adult.japanese-text ruby,
+.mystery-narrative.kids.japanese-text ruby,
+.scifi-narrative.adult.japanese-text ruby,
+.scifi-narrative.kids.japanese-text ruby,
+.horror-narrative.adult.japanese-text ruby,
+.horror-narrative.kids.japanese-text ruby,
+.adventure-narrative.adult.japanese-text ruby,
+.adventure-narrative.kids.japanese-text ruby,
+.fantasy-narrative.adult.japanese-text ruby,
+.fantasy-narrative.kids.japanese-text ruby {
+    -webkit-ruby-position: before !important;
+    ruby-position: over !important;
+}
+
+/* Remove gaps from ruby elements */
+.mystery-narrative.adult.japanese-text > *,
+.mystery-narrative.kids.japanese-text > *,
+.scifi-narrative.adult.japanese-text > *,
+.scifi-narrative.kids.japanese-text > *,
+.horror-narrative.adult.japanese-text > *,
+.horror-narrative.kids.japanese-text > *,
+.adventure-narrative.adult.japanese-text > *,
+.adventure-narrative.kids.japanese-text > *,
+.fantasy-narrative.adult.japanese-text > *,
+.fantasy-narrative.kids.japanese-text > *{
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Fix ruby positioning - ruby should overlay, not create gaps */
+.mystery-narrative.adult.japanese-text ruby,
+.mystery-narrative.kids.japanese-text ruby,
+.scifi-narrative.adult.japanese-text ruby,
+.scifi-narrative.kids.japanese-text ruby,
+.horror-narrative.adult.japanese-text ruby,
+.horror-narrative.kids.japanese-text ruby,
+.adventure-narrative.adult.japanese-text ruby,
+.adventure-narrative.kids.japanese-text ruby,
+.fantasy-narrative.adult.japanese-text ruby,
+.fantasy-narrative.kids.japanese-text ruby {
+    margin-inline: 0 !important;
+    padding-inline: 0 !important;
+    /* Don't override letter-spacing here - let the parent control it */
+    word-spacing: 0 !important;
+    display: ruby !important;
+    line-height: 1 !important;
+    height: auto !important;
+}
+
+/* Fix rt (ruby text/furigana) positioning */
+.mystery-narrative.adult.japanese-text rt,
+.mystery-narrative.kids.japanese-text rt,
+.scifi-narrative.adult.japanese-text rt,
+.scifi-narrative.kids.japanese-text rt,
+.horror-narrative.adult.japanese-text rt,
+.horror-narrative.kids.japanese-text rt,
+.adventure-narrative.adult.japanese-text rt,
+.adventure-narrative.kids.japanese-text rt,
+.fantasy-narrative.adult.japanese-text rt,
+.fantasy-narrative.kids.japanese-text rt {
+    font-size: 0.5em !important;
+    line-height: 1 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: ruby-text !important;
+}
+
+/* Fix rb (ruby base) positioning */
+.mystery-narrative.adult.japanese-text rb,
+.mystery-narrative.kids.japanese-text rb,
+.scifi-narrative.adult.japanese-text rb,
+.scifi-narrative.kids.japanese-text rb,
+.horror-narrative.adult.japanese-text rb,
+.horror-narrative.kids.japanese-text rb,
+.adventure-narrative.adult.japanese-text rb,
+.adventure-narrative.kids.japanese-text rb,
+.fantasy-narrative.adult.japanese-text rb,
+.fantasy-narrative.kids.japanese-text rb {
+    display: ruby-base !important;
+    line-height: 1 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Ensure ruby doesn't add extra vertical space in vertical-rl */
+.mystery-narrative.adult.japanese-text ruby,
+.mystery-narrative.kids.japanese-text ruby,
+.scifi-narrative.adult.japanese-text ruby,
+.scifi-narrative.kids.japanese-text ruby,
+.horror-narrative.adult.japanese-text ruby,
+.horror-narrative.kids.japanese-text ruby,
+.adventure-narrative.adult.japanese-text ruby,
+.adventure-narrative.kids.japanese-text ruby,
+.fantasy-narrative.adult.japanese-text ruby,
+.fantasy-narrative.kids.japanese-text ruby {
+    vertical-align: baseline !important;
+    white-space: nowrap !important;
+}

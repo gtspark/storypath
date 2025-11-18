@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Your Story - StoryPath</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="css/main.css?v=83">
+    <link rel="stylesheet" href="css/wizard.css?v=83">
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@3.0.0/tsparticles.bundle.min.js"></script>
+    <script src="js/i18n.js?v=83"></script>
+</head>
+<body>
+    <!-- Language Selector -->
+    <div class="lang-selector">
+        <button class="lang-pill active" data-lang="en" onclick="switchLanguage('en')">
+            EN
+        </button>
+        <button class="lang-pill" data-lang="ja" onclick="switchLanguage('ja')">
+            日本語
+        </button>
+    </div>
+
+    <div class="wizard-container">
+        <!-- Wizard Header -->
+        <div class="wizard-header">
+            <h1 class="wizard-title">✨ <span data-i18n="generator.wizardTitle">Create Your Adventure</span> ✨</h1>
+            <div class="wizard-step-indicator">
+                <div class="step-dot active" data-step="1"></div>
+                <div class="step-dot" data-step="2"></div>
+                <div class="step-dot" data-step="3"></div>
+                <div class="step-dot" data-step="4"></div>
+                <div class="step-dot" data-step="5"></div>
+            </div>
+        </div>
+
+        <!-- Step 1: Genre Selection -->
+        <div class="wizard-step" id="step1">
+            <h2 data-i18n="generator.step1Title">What kind of story calls to you?</h2>
+
+            <div class="genre-grid">
+                <div class="genre-card" data-genre="fantasy" onclick="selectGenre('fantasy')">
+                    <div class="genre-icon">🏰</div>
+                    <h3 data-i18n="generator.genres.fantasy">Fantasy</h3>
+                    <p data-i18n="generator.genreDescs.fantasy">Dragons, magic, and epic quests!</p>
+                    <div class="genre-sparkle">✨</div>
+                </div>
+
+                <div class="genre-card" data-genre="scifi" onclick="selectGenre('scifi')">
+                    <div class="genre-icon">🚀</div>
+                    <h3 data-i18n="generator.genres.scifi">Sci-Fi</h3>
+                    <p data-i18n="generator.genreDescs.scifi">Space adventures and future tech!</p>
+                    <div class="genre-sparkle">⭐</div>
+                </div>
+
+                <div class="genre-card" data-genre="mystery" onclick="selectGenre('mystery')">
+                    <div class="genre-icon">🔍</div>
+                    <h3 data-i18n="generator.genres.mystery">Mystery</h3>
+                    <p data-i18n="generator.genreDescs.mystery">Solve puzzles and uncover secrets!</p>
+                    <div class="genre-sparkle">🌟</div>
+                </div>
+
+                <div class="genre-card" data-genre="adventure" onclick="selectGenre('adventure')">
+                    <div class="genre-icon">🗺️</div>
+                    <h3 data-i18n="generator.genres.adventure">Adventure</h3>
+                    <p data-i18n="generator.genreDescs.adventure">Explore worlds and discover treasures!</p>
+                    <div class="genre-sparkle">💫</div>
+                </div>
+
+                <div class="genre-card" data-genre="horror" onclick="selectGenre('horror')">
+                    <div class="genre-icon">👻</div>
+                    <h3 data-i18n="generator.genres.horror">Spooky</h3>
+                    <p data-i18n="generator.genreDescs.horror">Spooky (but not too scary!) mysteries!</p>
+                    <div class="genre-sparkle">🎃</div>
+                </div>
+            </div>
+
+            <div class="wizard-nav">
+                <button class="btn" onclick="goHome()">
+                    <span data-i18n="generator.back">Back</span>
+                </button>
+                <button class="btn btn-primary" onclick="nextStep()" disabled id="step1Next">
+                    <span data-i18n="generator.next">Next</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Difficulty -->
+        <div class="wizard-step hidden" id="step2">
+            <h2 data-i18n="generator.step2Title">How challenging should your journey be?</h2>
+
+            <div class="radio-group">
+                <div class="radio-option" onclick="selectDifficulty('casual', event)">
+                    <input type="radio" name="difficulty" value="casual" style="pointer-events: none;">
+                    <span class="radio-label">
+                        ☀️ <span data-i18n="generator.difficulty.casual">Casual</span>
+                    </span>
+                    <div class="radio-desc" data-i18n="generator.difficultyDescs.casual">
+                        Story-focused, minimal failure
+                    </div>
+                </div>
+
+                <div class="radio-option" onclick="selectDifficulty('balanced', event)">
+                    <input type="radio" name="difficulty" value="balanced" checked style="pointer-events: none;">
+                    <span class="radio-label">
+                        ⚖️ <span data-i18n="generator.difficulty.balanced">Balanced</span>
+                    </span>
+                    <div class="radio-desc" data-i18n="generator.difficultyDescs.balanced">
+                        Choices matter, some risk
+                    </div>
+                </div>
+
+                <div class="radio-option" onclick="selectDifficulty('hardcore', event)">
+                    <input type="radio" name="difficulty" value="hardcore" style="pointer-events: none;">
+                    <span class="radio-label">
+                        ⚔️ <span data-i18n="generator.difficulty.hardcore">Hardcore</span>
+                    </span>
+                    <div class="radio-desc" data-i18n="generator.difficultyDescs.hardcore">
+                        High stakes, permadeath!
+                    </div>
+                </div>
+            </div>
+
+            <h2 data-i18n="generator.maturityTitle" style="margin-top: 30px;">Who is this story for?</h2>
+
+            <div class="radio-group">
+                <div class="radio-option selected" onclick="selectMaturity('kids', event)">
+                    <input type="radio" name="maturity" value="kids" checked style="pointer-events: none;">
+                    <span class="radio-label">
+                        🧒 <span data-i18n="generator.maturity.kids">For Kids</span>
+                    </span>
+                    <div class="radio-desc" data-i18n="generator.maturityDescs.kids">
+                        Safe and fun, setbacks are minor
+                    </div>
+                </div>
+
+                <div class="radio-option" onclick="selectMaturity('adult', event)">
+                    <input type="radio" name="maturity" value="adult" style="pointer-events: none;">
+                    <span class="radio-label">
+                        💀 <span data-i18n="generator.maturity.adults">For Adults</span>
+                    </span>
+                    <div class="radio-desc" data-i18n="generator.maturityDescs.adults">
+                        Real consequences - you can die and get game over
+                    </div>
+                </div>
+            </div>
+
+            <div class="wizard-nav">
+                <button class="btn" onclick="prevStep()">
+                    <span data-i18n="generator.back">Back</span>
+                </button>
+                <button class="btn btn-primary" onclick="nextStep()">
+                    <span data-i18n="generator.next">Next</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 3: Character Setup -->
+        <div class="wizard-step hidden" id="step3">
+            <h2 data-i18n="generator.step3Title">Who are you in this tale?</h2>
+
+            <div class="form-group">
+                <label data-i18n="generator.name">Name</label>
+                <input type="text" id="protagonistName" placeholder="">
+                <p class="form-note" data-i18n="generator.namePlaceholder">Leave blank for AI to choose</p>
+            </div>
+
+            <div class="form-group">
+                <label data-i18n="generator.gender">Gender</label>
+                <select id="protagonistGender">
+                    <option value="male" data-i18n="generator.genderOptions.male">Male</option>
+                    <option value="female" data-i18n="generator.genderOptions.female">Female</option>
+                    <option value="nonbinary" data-i18n="generator.genderOptions.nonbinary">Non-binary</option>
+                    <option value="other" data-i18n="generator.genderOptions.other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label data-i18n="generator.archetype">Archetype</label>
+                <select id="protagonistArchetype">
+                    <!-- Options will be populated based on genre -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label data-i18n="generator.storySeed">Custom Story Idea (Optional)</label>
+                <textarea id="storySeed" placeholder=""></textarea>
+                <p class="form-note" data-i18n="generator.storySeedPlaceholder">Example: A detective in 1920s Chicago...</p>
+            </div>
+
+            <div class="wizard-nav">
+                <button class="btn" onclick="prevStep()">
+                    <span data-i18n="generator.back">Back</span>
+                </button>
+                <button class="btn btn-primary" onclick="nextStep()">
+                    <span data-i18n="generator.next">Next</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 4: Language Selection -->
+        <div class="wizard-step hidden" id="step4">
+            <h2 data-i18n="generator.step4Title">Language for this story</h2>
+
+            <div class="radio-group" id="languageOptions">
+                <!-- Language options will be populated based on UI language -->
+            </div>
+
+            <p class="form-note" data-i18n="generator.languageNote">
+                Once selected, this story continues in this language
+            </p>
+
+            <div class="wizard-nav">
+                <button class="btn" onclick="prevStep()">
+                    <span data-i18n="generator.back">Back</span>
+                </button>
+                <button class="btn btn-primary" onclick="nextStep()">
+                    <span data-i18n="generator.next">Next</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 5: Password Protection -->
+        <div class="wizard-step hidden" id="step5">
+            <h2 data-i18n="generator.step5Title">Protect your story</h2>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="enablePassword" onchange="togglePasswordField()">
+                <label for="enablePassword" data-i18n="generator.passwordOptional">
+                    Password protect this story?
+                </label>
+            </div>
+
+            <div class="form-group hidden" id="passwordFields">
+                <label data-i18n="generator.passwordPlaceholder">Password</label>
+                <input type="password" id="storyPassword" data-i18n-placeholder="generator.passwordPlaceholder" placeholder="Enter password">
+                <p class="form-note" data-i18n="generator.passwordNote">
+                    You'll need this password to continue later
+                </p>
+            </div>
+
+            <div class="wizard-nav">
+                <button class="btn" onclick="prevStep()">
+                    <span data-i18n="generator.back">Back</span>
+                </button>
+                <button class="btn btn-primary" onclick="createStory()">
+                    <span data-i18n="generator.create">Create Story!</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div class="wizard-step hidden" id="loadingStep">
+            <div class="loading-screen">
+                <!-- Particle container -->
+                <div id="loadingParticles"></div>
+
+                <!-- 3D Animated book opening -->
+                <div class="book-3d">
+                    <span class="page turn"></span>
+                    <span class="page turn"></span>
+                    <span class="page turn"></span>
+                    <span class="page turn"></span>
+                    <span class="page turn"></span>
+                    <span class="page turn"></span>
+                    <span class="cover"></span>
+                    <span class="page"></span>
+                    <span class="cover turn"></span>
+                </div>
+
+                <h2 class="loading-text" data-i18n="generator.generating">Weaving Your Tale...</h2>
+                <p class="loading-subtitle" id="loadingSubtitle">Gathering magical ink...</p>
+
+                <!-- Progress bar -->
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" id="progressBarFill"></div>
+                        <div class="progress-shimmer"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">0%</div>
+                </div>
+
+                <!-- Floating story elements -->
+                <div class="story-elements">
+                    <div class="story-element">📖</div>
+                    <div class="story-element">✨</div>
+                    <div class="story-element">🎭</div>
+                    <div class="story-element">🎨</div>
+                    <div class="story-element">⚔️</div>
+                    <div class="story-element">🔮</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = `${window.location.protocol}//${window.location.hostname}/storypath-api`;
+        let currentStep = 1;
+        const storyData = {
+            genre: null,
+            difficulty: 'balanced',
+            maturity_level: 'kids',
+            protagonist_name: '',
+            protagonist_gender: 'nonbinary',
+            protagonist_archetype: 'explorer',
+            story_seed: '',
+            language: currentLang || 'en',  // Default to current UI language
+            password: ''
+        };
+
+        // Genre-specific archetypes
+        const archetypesByGenre = {
+            fantasy: ['warrior', 'mage', 'rogue', 'cleric', 'ranger'],
+            scifi: ['soldier', 'engineer', 'diplomat', 'hacker', 'pilot'],
+            mystery: ['detective', 'journalist', 'researcher', 'amateur_sleuth', 'consultant'],
+            adventure: ['explorer', 'archaeologist', 'treasure_hunter', 'guide', 'mercenary'],
+            horror: ['survivor', 'investigator', 'skeptic', 'medium', 'scientist']
+        };
+
+        const archetypeTranslations = {
+            en: {
+                // Fantasy
+                warrior: 'Warrior', mage: 'Mage', rogue: 'Rogue', cleric: 'Cleric', ranger: 'Ranger',
+                // Sci-Fi
+                soldier: 'Soldier', engineer: 'Engineer', diplomat: 'Diplomat', hacker: 'Hacker', pilot: 'Pilot',
+                // Mystery
+                detective: 'Detective', journalist: 'Journalist', researcher: 'Researcher',
+                amateur_sleuth: 'Amateur Sleuth', consultant: 'Consultant',
+                // Adventure
+                explorer: 'Explorer', archaeologist: 'Archaeologist', treasure_hunter: 'Treasure Hunter',
+                guide: 'Guide', mercenary: 'Mercenary',
+                // Horror
+                survivor: 'Survivor', investigator: 'Investigator', skeptic: 'Skeptic',
+                medium: 'Medium', scientist: 'Scientist'
+            },
+            ja: {
+                // Fantasy
+                warrior: '戦士', mage: '魔法使い', rogue: '盗賊', cleric: '僧侶', ranger: 'レンジャー',
+                // Sci-Fi
+                soldier: '兵士', engineer: 'エンジニア', diplomat: '外交官', hacker: 'ハッカー', pilot: 'パイロット',
+                // Mystery
+                detective: '探偵', journalist: 'ジャーナリスト', researcher: '研究者',
+                amateur_sleuth: 'アマチュア探偵', consultant: 'コンサルタント',
+                // Adventure
+                explorer: '探検家', archaeologist: '考古学者', treasure_hunter: 'トレジャーハンター',
+                guide: 'ガイド', mercenary: '傭兵',
+                // Horror
+                survivor: '生存者', investigator: '調査員', skeptic: '懐疑論者',
+                medium: '霊媒師', scientist: '科学者'
+            }
+        };
+
+        function updateArchetypes() {
+            const select = document.getElementById('protagonistArchetype');
+            const archetypes = archetypesByGenre[storyData.genre] || archetypesByGenre.adventure;
+            const lang = currentLang || 'en';
+
+            select.innerHTML = '';
+            archetypes.forEach(archetype => {
+                const option = document.createElement('option');
+                option.value = archetype;
+                option.textContent = archetypeTranslations[lang][archetype];
+                select.appendChild(option);
+            });
+
+            storyData.protagonist_archetype = archetypes[0];
+        }
+
+        function selectGenre(genre) {
+            storyData.genre = genre;
+
+            document.querySelectorAll('.genre-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            document.querySelector(`[data-genre="${genre}"]`).classList.add('selected');
+            document.getElementById('step1Next').disabled = false;
+        }
+
+        function selectDifficulty(difficulty, evt) {
+            storyData.difficulty = difficulty;
+
+            // Uncheck all and remove selected class
+            document.querySelectorAll('#step2 .radio-option[onclick*="selectDifficulty"]').forEach(opt => {
+                opt.classList.remove('selected');
+                const radio = opt.querySelector('input[type="radio"]');
+                if (radio) radio.checked = false;
+            });
+
+            if (evt && evt.currentTarget) {
+                evt.currentTarget.classList.add('selected');
+                const radio = evt.currentTarget.querySelector('input[type="radio"]');
+                if (radio) radio.checked = true;
+            } else {
+                // Called programmatically on page load
+                const option = document.querySelector(`#step2 input[name="difficulty"][value="${difficulty}"]`);
+                if (option) {
+                    option.checked = true;
+                    option.closest('.radio-option').classList.add('selected');
+                }
+            }
+        }
+
+        function selectMaturity(maturity, evt) {
+            console.log('selectMaturity called with:', maturity);
+            storyData.maturity_level = maturity;
+            console.log('storyData.maturity_level set to:', storyData.maturity_level);
+
+            // Uncheck all and remove selected class
+            document.querySelectorAll('#step2 .radio-option[onclick*="selectMaturity"]').forEach(opt => {
+                opt.classList.remove('selected');
+                const radio = opt.querySelector('input[type="radio"]');
+                if (radio) radio.checked = false;
+            });
+
+            if (evt && evt.currentTarget) {
+                evt.currentTarget.classList.add('selected');
+                const radio = evt.currentTarget.querySelector('input[type="radio"]');
+                if (radio) radio.checked = true;
+                console.log('Radio button checked:', radio.value);
+            }
+        }
+
+        function selectStoryLanguage(lang, evt) {
+            storyData.language = lang;
+
+            document.querySelectorAll('#step4 .radio-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+
+            if (evt && evt.currentTarget) {
+                evt.currentTarget.classList.add('selected');
+                const input = evt.currentTarget.querySelector('input');
+                if (input) input.checked = true;
+            }
+        }
+
+        function togglePasswordField() {
+            const enabled = document.getElementById('enablePassword').checked;
+            document.getElementById('passwordFields').classList.toggle('hidden', !enabled);
+        }
+
+        function nextStep() {
+            // Collect data from current step
+            if (currentStep === 2) {
+                // Populate archetypes when entering step 3
+                updateArchetypes();
+            }
+
+            if (currentStep === 3) {
+                storyData.protagonist_name = document.getElementById('protagonistName').value;
+                storyData.protagonist_gender = document.getElementById('protagonistGender').value;
+                storyData.protagonist_archetype = document.getElementById('protagonistArchetype').value;
+                storyData.story_seed = document.getElementById('storySeed').value;
+                // Populate language options when entering step 4
+                setTimeout(() => populateLanguageOptions(), 100);
+            }
+
+            // Hide current step
+            document.getElementById(`step${currentStep}`).classList.add('hidden');
+
+            // Update step indicator
+            document.querySelector(`[data-step="${currentStep}"]`).classList.remove('active');
+            document.querySelector(`[data-step="${currentStep}"]`).classList.add('completed');
+
+            // Show next step
+            currentStep++;
+            document.getElementById(`step${currentStep}`).classList.remove('hidden');
+            document.querySelector(`[data-step="${currentStep}"]`).classList.add('active');
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function prevStep() {
+            // Hide current step
+            document.getElementById(`step${currentStep}`).classList.add('hidden');
+
+            // Update step indicator
+            document.querySelector(`[data-step="${currentStep}"]`).classList.remove('active');
+
+            // Show previous step
+            currentStep--;
+            document.getElementById(`step${currentStep}`).classList.remove('hidden');
+            document.querySelector(`[data-step="${currentStep}"]`).classList.add('active');
+            document.querySelector(`[data-step="${currentStep}"]`).classList.remove('completed');
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function createStory() {
+            // Collect final data
+            if (document.getElementById('enablePassword').checked) {
+                storyData.password = document.getElementById('storyPassword').value;
+            }
+
+            // Show loading screen
+            document.getElementById('step5').classList.add('hidden');
+            document.getElementById('loadingStep').classList.remove('hidden');
+
+            // Initialize particles
+            initLoadingParticles();
+
+            try {
+                console.log('Creating story with data:', storyData);
+
+                // Call API to create story (returns immediately)
+                const response = await fetch(`${API_URL}/story/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(storyData)
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.story_id) {
+                    // Story created, now poll for completion
+                    pollStoryStatus(data.story_id);
+                } else {
+                    throw new Error(data.error || 'Failed to create story');
+                }
+
+            } catch (error) {
+                console.error('Error creating story:', error);
+                alert('Failed to create story: ' + error.message);
+                // Go back to step 5
+                document.getElementById('loadingStep').classList.add('hidden');
+                document.getElementById('step5').classList.remove('hidden');
+            }
+        }
+
+        // Poll for story generation completion
+        async function pollStoryStatus(storyId) {
+            const statusMessages = currentLang === 'ja' ? {
+                'generating': 'ストーリー生成を開始...',
+                'arc': 'ストーリーアークを織り込んでいます...',
+                'opening': 'オープニングシーンを作成中...',
+                'complete': 'ストーリーの準備完了！',
+                'error': '何か問題が発生しました...'
+            } : {
+                'generating': 'Starting story generation...',
+                'arc': 'Weaving the story arc...',
+                'opening': 'Crafting the opening scene...',
+                'complete': 'Story ready!',
+                'error': 'Something went wrong...'
+            };
+
+            let currentProgress = 0;
+            let targetProgress = 0;
+
+            // Smooth progress animation
+            const smoothInterval = setInterval(() => {
+                if (currentProgress < targetProgress) {
+                    currentProgress += (targetProgress - currentProgress) * 0.1;
+                    if (targetProgress - currentProgress < 1) {
+                        currentProgress = targetProgress;
+                    }
+                    setProgress(currentProgress);
+                }
+            }, 100);
+
+            const pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`${API_URL}/story/${storyId}/status`);
+                    const data = await response.json();
+
+                    console.log('Status poll:', data);
+
+                    // Update subtitle based on status
+                    if (statusMessages[data.status]) {
+                        document.getElementById('loadingSubtitle').textContent = statusMessages[data.status];
+                    }
+
+                    // Gradually increase target progress based on status
+                    if (data.status === 'generating') {
+                        targetProgress = Math.max(targetProgress, 15);
+                    } else if (data.status === 'arc') {
+                        targetProgress = Math.max(targetProgress, 60);
+                    } else if (data.status === 'opening') {
+                        targetProgress = Math.max(targetProgress, 90);
+                    }
+
+                    if (data.ready) {
+                        clearInterval(pollInterval);
+                        clearInterval(smoothInterval);
+                        targetProgress = 100;
+                        setProgress(100, 'Story ready!');
+
+                        // Redirect to preview
+                        setTimeout(() => {
+                            window.location.href = `preview.html?story=${storyId}`;
+                        }, 500);
+                    } else if (data.error) {
+                        clearInterval(pollInterval);
+                        clearInterval(smoothInterval);
+
+                        // Show better error message with retry option
+                        const retry = confirm(
+                            'Story generation failed. This is usually a temporary API issue.\n\n' +
+                            'Click OK to try again, or Cancel to go back and adjust your settings.'
+                        );
+
+                        if (retry) {
+                            // Restart the creation process
+                            location.reload();
+                        } else {
+                            document.getElementById('loadingStep').classList.add('hidden');
+                            document.getElementById('step5').classList.remove('hidden');
+                        }
+                        return;
+                    }
+
+                } catch (error) {
+                    clearInterval(pollInterval);
+                    clearInterval(smoothInterval);
+                    console.error('Error polling story status:', error);
+
+                    const retry = confirm(
+                        'Connection error while checking story status.\n\n' +
+                        'Click OK to reload and try again, or Cancel to go back.'
+                    );
+
+                    if (retry) {
+                        location.reload();
+                    } else {
+                        document.getElementById('loadingStep').classList.add('hidden');
+                        document.getElementById('step5').classList.remove('hidden');
+                    }
+                }
+            }, 2000); // Poll every 2 seconds
+        }
+
+        // Progress bar animation
+        function setProgress(percent, subtitle) {
+            const progressBarFill = document.getElementById('progressBarFill');
+            if (progressBarFill) {
+                progressBarFill.style.width = percent + '%';
+            }
+            document.getElementById('progressText').textContent = Math.round(percent) + '%';
+            if (subtitle) {
+                document.getElementById('loadingSubtitle').textContent = subtitle;
+            }
+        }
+
+
+        // Particle effects for loading
+        function initLoadingParticles() {
+            if (typeof tsParticles === 'undefined') return;
+
+            tsParticles.load("loadingParticles", {
+                particles: {
+                    number: { value: 50 },
+                    color: { value: ["#ff8c42", "#667eea", "#ffd700"] },
+                    shape: { type: ["circle", "square"] },
+                    opacity: {
+                        value: 0.6,
+                        animation: {
+                            enable: true,
+                            speed: 1,
+                            minimumValue: 0.2
+                        }
+                    },
+                    size: {
+                        value: { min: 3, max: 8 },
+                        animation: {
+                            enable: true,
+                            speed: 3,
+                            minimumValue: 2
+                        }
+                    },
+                    move: {
+                        enable: true,
+                        speed: 2,
+                        direction: "top",
+                        random: true,
+                        straight: false,
+                        outModes: "out"
+                    }
+                }
+            });
+        }
+
+        function goHome() {
+            window.location.href = 'index.html';
+        }
+
+        function switchLanguage(lang) {
+            setLanguage(lang);
+
+            document.querySelectorAll('.lang-pill').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+            });
+        }
+
+        function populateLanguageOptions() {
+            console.log('populateLanguageOptions called');
+            const container = document.getElementById('languageOptions');
+            console.log('Container:', container);
+            const uiLang = currentLang || 'en';
+            console.log('UI Lang:', uiLang);
+
+            if (!container) {
+                console.error('languageOptions container not found!');
+                return;
+            }
+
+            // Put current UI language first
+            if (uiLang === 'ja') {
+                container.innerHTML = `
+                    <div class="radio-option selected" onclick="selectStoryLanguage('ja', event)">
+                        <input type="radio" name="storyLanguage" value="ja" checked style="pointer-events: none;">
+                        <span class="radio-label">
+                            日本語 - 日本語で語られる物語
+                        </span>
+                    </div>
+                    <div class="radio-option" onclick="selectStoryLanguage('en', event)">
+                        <input type="radio" name="storyLanguage" value="en" style="pointer-events: none;">
+                        <span class="radio-label">
+                            English - Story narrated in English
+                        </span>
+                    </div>
+                `;
+                storyData.language = 'ja';
+            } else {
+                container.innerHTML = `
+                    <div class="radio-option selected" onclick="selectStoryLanguage('en', event)">
+                        <input type="radio" name="storyLanguage" value="en" checked style="pointer-events: none;">
+                        <span class="radio-label">
+                            English - Story narrated in English
+                        </span>
+                    </div>
+                    <div class="radio-option" onclick="selectStoryLanguage('ja', event)">
+                        <input type="radio" name="storyLanguage" value="ja" style="pointer-events: none;">
+                        <span class="radio-label">
+                            日本語 - 日本語で語られる物語
+                        </span>
+                    </div>
+                `;
+                storyData.language = 'en';
+            }
+            console.log('Language options populated. HTML length:', container.innerHTML.length);
+        }
+
+        // Set default difficulty selection
+        window.addEventListener('DOMContentLoaded', () => {
+            selectDifficulty('balanced');
+            populateLanguageOptions();
+
+            // Sync language selector with current language from i18n.js
+            const currentUILang = currentLang || 'en';
+            document.querySelectorAll('.lang-pill').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-lang') === currentUILang);
+            });
+        });
+
+        // Also populate when entering step 4
+        window.addEventListener('languageChanged', () => {
+            if (currentStep === 4) {
+                populateLanguageOptions();
+            }
+        });
+    </script>
+</body>
+</html>
