@@ -118,10 +118,11 @@
             if (!text) return text;
 
             // If text already contains HTML ruby tags, Claude generated them directly
-            // Remove 《》 format to avoid double furigana, but keep the base kanji
+            // Remove duplicate 漢字《かんじ》 format completely (both kanji and brackets)
             if (text.includes('<ruby>') || text.includes('<rt>')) {
-                // Strip out 《furigana》 brackets but keep the kanji
-                return text.replace(/《[ぁ-ん]+》/g, '');
+                // Strip out BOTH the kanji AND the 《furigana》 brackets to avoid duplication
+                // Pattern: kanji followed by 《hiragana》
+                return text.replace(/([一-龯々]+)《[ぁ-ん]+》/g, '');
             }
 
             // Convert 漢字《かんじ》 format to HTML ruby tags (legacy format)
