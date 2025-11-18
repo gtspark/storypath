@@ -507,8 +507,11 @@ body .story-view.ja-vertical .narrative-text p {
     max-height: 800px;
     padding: 14px 16px;
     flex-shrink: 0;
-    line-height: 1.6;
+    line-height: 1.4;
     overflow-y: auto;
+    word-break: keep-all;
+    line-break: strict;
+    overflow-wrap: anywhere;
 }
 
 .story-view.ja-vertical .choice-emoji {
