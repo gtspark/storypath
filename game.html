@@ -131,15 +131,33 @@
         function normalizeJapaneseTypography(text) {
             if (!text) return text;
 
-            // Collapse stray ASCII spaces between Japanese chars
             const jpChar = '[ぁ-ゖァ-ヺ一-龯々〆ヵヶ]';
-            let normalized = text.replace(new RegExp(`(${jpChar})\\s+(${jpChar})`, 'g'), '$1$2');
+            let normalized = text;
 
-            // Replace ASCII hyphen surrounded by Japanese characters with vertical dash (︱)
-            normalized = normalized.replace(new RegExp(`(${jpChar})\\s*[-‐‑‒–—―]\\s*(${jpChar})`, 'g'), '$1︱$2');
+            // Collapse multiple spaces into single space
+            normalized = normalized.replace(/\s+/g, ' ');
+
+            // Remove spaces between Japanese characters
+            normalized = normalized.replace(new RegExp(`(${jpChar})\\s+(${jpChar})`, 'g'), '$1$2');
+
+            // Fix gaps around dashes/hyphens: remove spaces around them
+            normalized = normalized.replace(/\s*[-‐‑‒–—―]\s*/g, '—'); // Use em dash, no spaces
+
+            // Fix gaps after commas/punctuation: remove space after Japanese punctuation
+            normalized = normalized.replace(/([、。，．])\s+/g, '$1');
+
+            // Fix gaps before numbers: add zero-width space to allow breaking
+            normalized = normalized.replace(new RegExp(`(${jpChar})\\s*([0-9])`, 'g'), '$1\u200b$2');
 
             // Remove accidental slashes between kana/kanji (す/る -> する)
             normalized = normalized.replace(new RegExp(`(${jpChar})\\/(${jpChar})`, 'g'), '$1$2');
+
+            // Add zero-width space after verbs/suru to prevent bad line breaks
+            // Match common verb endings that shouldn't break
+            normalized = normalized.replace(/([一-龯][すする])/g, (match) => {
+                // Don't break suru verbs - add non-breaking marker
+                return match.replace(/([すする])$/, '\u200B$1');
+            });
 
             return normalized;
         }

@@ -471,9 +471,10 @@ body .story-view.ja-vertical .narrative-panel {
     max-height: 800px !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
-    line-break: strict;
-    word-break: keep-all;
-    overflow-wrap: anywhere;
+    line-break: strict !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+    white-space: pre-wrap !important;
     display: block !important;
 }
 
@@ -482,6 +483,9 @@ body .story-view.ja-vertical .narrative-text {
     padding-right: 8px;
     writing-mode: vertical-rl !important;
     text-orientation: upright !important;
+    line-break: strict !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
 }
 
 body .story-view.ja-vertical .narrative-text p {
