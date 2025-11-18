@@ -68,8 +68,13 @@
                 element.style.setProperty('min-height', finalHeight + 'px', 'important');
                 element.style.setProperty('max-width', finalWidth + 'px', 'important');
                 element.style.setProperty('max-height', finalHeight + 'px', 'important');
+
+                // Use logical properties for vertical writing-mode
+                element.style.setProperty('contain-intrinsic-block-size', finalWidth + 'px', 'important');
+                element.style.setProperty('contain-intrinsic-inline-size', finalHeight + 'px', 'important');
+
                 element.style.willChange = 'contents';
-                element.style.contain = 'layout style';
+                element.style.contain = 'layout style size';
                 element.style.boxSizing = 'border-box';
                 element.style.transform = 'translateZ(0)'; // Force GPU acceleration
                 
