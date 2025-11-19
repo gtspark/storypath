@@ -72,7 +72,7 @@ class AudioManager {
             // 'onyx' or 'shimmer' are better for Japanese storytelling than 'nova'
             const voice = this.lang === 'ja' ? 'onyx' : 'fable';
             
-            const response = await fetch('/api/tts', {
+            const response = await fetch('/storypath-api/tts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text, voice })
