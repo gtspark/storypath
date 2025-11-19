@@ -759,7 +759,7 @@ app.post('/api/tts', async (req, res) => {
         const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
         const mp3 = await openai.audio.speech.create({
-            model: "tts-1",
+            model: "tts-1-hd",
             voice: voice || "alloy",
             input: text,
         });

@@ -3,19 +3,21 @@ class AudioManager {
         this.enabled = false;
         this.lang = 'en';
         this.currentAudio = null;
+        this.audioContext = null;
         
-        // Initialize Howler for SFX
+        // Initialize Howler for Ambient only
         this.sounds = {
-            click: new Howl({
-                src: ['audio/click.ogg'],
-                volume: 0.4
-            }),
-            hover: new Howl({
-                src: ['audio/hover.ogg'],
-                volume: 0.2
-            }),
             ambient: null
         };
+    }
+
+    initAudioContext() {
+        if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
     }
 
     setLanguage(lang) {
@@ -24,15 +26,16 @@ class AudioManager {
 
     toggle() {
         this.enabled = !this.enabled;
-        if (!this.enabled) {
-            this.stop();
-            if (this.sounds.ambient) {
-                this.sounds.ambient.stop();
-            }
-        } else {
+        if (this.enabled) {
+            this.initAudioContext();
             // Resume ambient if it was playing
             if (this.sounds.ambient && !this.sounds.ambient.playing()) {
                 this.sounds.ambient.play();
+            }
+        } else {
+            this.stop();
+            if (this.sounds.ambient) {
+                this.sounds.ambient.stop();
             }
         }
         return this.enabled;
@@ -88,11 +91,35 @@ class AudioManager {
         window.speechSynthesis.cancel();
     }
 
+    playBeep(frequency, type, duration, volume = 0.1) {
+        if (!this.enabled) return;
+        this.initAudioContext();
+
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+
+        oscillator.type = type;
+        oscillator.frequency.value = frequency;
+
+        gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+
+        oscillator.start();
+        oscillator.stop(this.audioContext.currentTime + duration);
+    }
+
     playSfx(name) {
         if (!this.enabled) return;
 
-        if (this.sounds[name]) {
-            this.sounds[name].play();
+        if (name === 'click') {
+            // High pitched short beep
+            this.playBeep(800, 'sine', 0.1, 0.1);
+        } else if (name === 'hover') {
+            // Lower pitched very short beep
+            this.playBeep(400, 'sine', 0.05, 0.05);
         }
     }
     
@@ -102,7 +129,9 @@ class AudioManager {
         // Stop previous ambient
         if (this.sounds.ambient) {
             this.sounds.ambient.fade(0.5, 0, 1000);
-            setTimeout(() => this.sounds.ambient.stop(), 1000);
+            setTimeout(() => {
+                if (this.sounds.ambient) this.sounds.ambient.stop();
+            }, 1000);
         }
         
         // Map genre to local ambient sound
@@ -119,7 +148,8 @@ class AudioManager {
                 src: [ambientFiles[genre]],
                 html5: true,
                 loop: true,
-                volume: 0.3
+                volume: 0.3,
+                onloaderror: (id, err) => console.warn('Ambient load error:', err)
             });
             
             this.sounds.ambient.play();
