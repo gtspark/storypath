@@ -55,7 +55,7 @@ class EmbeddingHelper {
         console.log(`📊 Added embedding for story: ${title}`);
     }
 
-    async checkSimilarity(genre, maturityLevel, proposedConcept, similarityThreshold = 0.7) {
+    async checkSimilarity(genre, maturityLevel, proposedConcept, similarityThreshold = 0.6) {
         if (!this.collection) await this.initialize();
 
         const embedding = await this.getEmbedding(proposedConcept);
@@ -80,7 +80,7 @@ class EmbeddingHelper {
                     document: results.documents[0][idx],
                     similarity: sim
                 }))
-                .filter(s => s.similarity > 0.7) // Include anything over 70% similar
+                .filter(s => s.similarity > 0.6) // Include anything over 60% similar
                 .sort((a, b) => b.similarity - a.similarity);
 
             if (maxSimilarity > similarityThreshold) {
@@ -99,9 +99,13 @@ class EmbeddingHelper {
 
         return {
             isTooSimilar: false,
-            similarity: 0,
+            similarity: results.distances && results.distances[0] && results.distances[0].length > 0
+                ? Math.max(...results.distances[0].map(d => 1 - d))
+                : 0,
             similarStories: [],
-            message: 'Concept is unique enough'
+            message: results.distances && results.distances[0] && results.distances[0].length > 0
+                ? `Concept is unique enough (max similarity: ${(Math.max(...results.distances[0].map(d => 1 - d)) * 100).toFixed(1)}%)`
+                : 'Concept is unique enough (no similar stories found)'
         };
     }
 
