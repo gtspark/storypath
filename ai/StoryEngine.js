@@ -7,19 +7,130 @@ class StoryEngine {
     }
 
     async generateStoryTitle(storyConfig) {
-        // ... (unchanged)
         const { genre, language, protagonist_name, story_seed, story_arc, opening_narrative } = storyConfig;
 
         if (language === 'ja') {
             const prompt = `${genre}小説の魅力的なタイトルを生成してください。
-// ... (rest of method unchanged for now, truncating for brevity in write)
-// I will write the FULL file content below, ensuring generateNextSceneStreaming is fixed.
-`;
-// ...
+
+主人公: ${protagonist_name || '名前なし'}
+${story_seed ? `ストーリーコンセプト: ${story_seed}` : ''}
+${story_arc ? `ストーリーアーク:\n${story_arc}` : ''}
+${opening_narrative ? `オープニングシーン（最初の200文字）:\n${opening_narrative.substring(0, 200)}...` : ''}
+
+要件:
+- 実際の日本の小説のような本のタイトルにする
+- 短く印象的（2-6単語）
+- 命令形を使わない（「追え」「探せ」など禁止）
+- 「の謎」「の秘密」などの説明的な言葉を避ける
+- 良い例: 「容疑者Xの献身」「告白」「白夜行」「砂の女」「人間失格」「模倣犯」
+- 悪い例: 「宝物を探せ」「犯人を追え」「謎を解け」
+- ふりがなは不要
+
+タイトルのみを返してください。説明や引用符は不要です。`;
+
+            const response = await this.callClaude('あなたは小説のタイトル作成の専門家です。実際の日本の推理小説のような、文学的で洗練されたタイトルを作ります。', prompt, null, 'ja');
+            return response.trim().replace(/^["']|["']$/g, ''); // Remove quotes if any
+        }
+
+        const prompt = `Generate a compelling title for a ${genre} novel.
+
+Protagonist: ${protagonist_name || 'unnamed protagonist'}
+${story_seed ? `Story concept: ${story_seed}` : ''}
+${story_arc ? `Story arc:\n${story_arc}` : ''}
+${opening_narrative ? `Opening scene (first 200 chars):\n${opening_narrative.substring(0, 200)}...` : ''}
+
+Requirements:
+- Sound like an actual published fiction novel
+- Short and evocative (2-6 words)
+- NO imperative verbs (no "Find...", "Chase...", "Catch...", "Solve...")
+- NO descriptive phrases like "The Quest for..." or "The Mystery of..."
+- Good examples: "Gone Girl", "The Silent Patient", "The Goldfinch", "Rebecca", "In Cold Blood", "The Secret History", "Sharp Objects"
+- Bad examples: "Find the Killer", "Chase the Crystal", "Solve the Mystery", "The Quest for Gold"
+- Think literary novel, not video game quest
+
+Return ONLY the title. No explanations or quotes.`;
+
+        const response = await this.callClaude('You are an expert at creating literary fiction titles. You create sophisticated, evocative titles like those found in real published novels.', prompt, null, 'en');
+        return response.trim().replace(/^["']|["']$/g, ''); // Remove quotes if any
     }
-    
-    // ... (other methods unchanged)
-    
+
+    async generateStoryArc(storyConfig) {
+        const { genre, language, difficulty, maturity_level, protagonist_name, story_seed, avoidThemes } = storyConfig;
+
+        if (language === 'ja') {
+            const prompt = `${genre}ストーリーの内部ガイドを作成してください。
+${maturity_level === 'kids' ? '子供向け（6-12歳） - 前向きで安全な結末、楽しい冒険、乗り越えられる困難。ディズニー/ピクサーのような家族向けの雰囲気。' : '大人向け（18歳以上） - 暗い瞬間や深刻な危険もあり、実際の危機、道徳的なジレンマ、本当の結果（死も含む）。'}
+
+主人公: ${protagonist_name || '名前なし'}
+${story_seed ? `ストーリーコンセプト: ${story_seed}` : ''}
+
+${avoidThemes && avoidThemes.length > 0 ? `⚠️ 重要: 以下のテーマや概念は既に他の物語で使用されているため、完全に避けてください：
+${avoidThemes.map((t, i) => `${i + 1}. ${t}`).join('\n')}
+
+代わりに、完全に異なる設定、キャラクター、謎を探索してください。創造性を発揮し、陳腐な表現や過度に使用されたトロープを避けてください。
+` : ''}
+
+以下を定義してください：
+1. **核心的な秘密**: ${genre === 'mystery' ? '真犯人、動機、隠されたつながり' : '重要な真実や謎（まだプレイヤーには知らされていない）'}
+2. **理想的な結末**: ストーリーがどう解決するべきか（プレイヤーが正しい選択をした場合）${maturity_level === 'kids' ? ' - ハッピーエンドで、主人公は安全' : ' - 選択に応じて勝利または悲劇的な結末'}
+3. **進行のヒートマップ**: プレイヤーが真実に近づいているか遠ざかっているかを判断する方法
+4. **誤った道**: プレイヤーが取れる袋小路や誤った道（${maturity_level === 'kids' ? 'NPCや友達が優しくリダイレクトし、安全に戻る' : '実際の失敗、深刻な後退、または死につながる可能性がある'}）
+
+重要: これはタイムラインではなく、内部知識です。シーン数を指定しないでください。ストーリーは必要に応じて展開します。`;
+
+            const response = await this.callClaude('あなたは秘密を守るストーリープランナーです。このガイドはAIのみが見ます。', prompt, null, 'ja');
+            return response.trim();
+        }
+
+        const prompt = `Create an internal guide for a ${genre} story.
+${maturity_level === 'kids' ? 'For young children (ages 6-12) - Safe, uplifting ending with fun adventure and manageable challenges. Family-friendly tone like Disney/Pixar movies.' : 'For mature adults (18+) - Can have dark moments, serious danger, real stakes, moral dilemmas, and genuine consequences including death.'}
+
+Protagonist: ${protagonist_name || 'unnamed protagonist'}
+${story_seed ? `Story concept: ${story_seed}` : ''}
+
+${avoidThemes && avoidThemes.length > 0 ? `⚠️ CRITICAL: The following themes/concepts have already been used in other stories. You MUST completely avoid these:
+${avoidThemes.map((t, i) => `${i + 1}. ${t}`).join('\n')}
+
+Explore a COMPLETELY DIFFERENT setting, characters, and mysteries instead. Be creative and avoid clichés or overused tropes.
+` : ''}
+
+Define:
+1. **Core secrets**: ${genre === 'mystery' ? 'Who the real culprit is, their motive, hidden connections' : 'The key truths or mysteries (not yet revealed to player)'}
+2. **Intended ending**: How the story should resolve if player makes good choices${maturity_level === 'kids' ? ' - happy ending where protagonist is safe' : ' - can be triumphant or tragic depending on choices'}
+3. **Progress heat map**: How to tell if player is getting warmer or colder to the truth
+4. **Dead-end paths**: False leads or mistakes the player can make (${maturity_level === 'kids' ? 'NPCs or friends gently redirect them back to safety' : 'can lead to real failure, serious setbacks, or death'})
+
+IMPORTANT: This is NOT a timeline. Don't specify scene numbers. The story unfolds as long as it needs to.`;
+
+        const response = await this.callClaude('You are a story planner keeping secrets. This guide is for AI eyes only.', prompt, null, 'en');
+        return response.trim();
+    }
+
+    async generateStoryOpening(storyConfig) {
+        const { genre, language, difficulty, maturity_level, protagonist_name, protagonist_gender, protagonist_archetype, story_seed } = storyConfig;
+
+        const systemPrompt = this.buildSystemPrompt(genre, language, difficulty, maturity_level);
+        const userPrompt = this.buildOpeningPrompt(protagonist_name, protagonist_gender, protagonist_archetype, story_seed, language, maturity_level);
+
+        const response = await this.callClaude(systemPrompt, userPrompt, null, language);
+        return this.parseStoryResponse(response);
+    }
+
+    async generateNextScene(storyContext, playerChoice) {
+        const { story, recentScenes, importantEvents, inventory, relationships } = storyContext;
+
+        const systemPrompt = this.buildSystemPrompt(story.genre, story.language, story.difficulty, story.maturity_level);
+
+        // Build cacheable context (story arc - doesn't change)
+        const cacheableContext = this.buildCacheableContext(story);
+
+        // Build dynamic prompt (changes each scene)
+        const userPrompt = this.buildNextScenePrompt(story, recentScenes, importantEvents, inventory, relationships, playerChoice);
+
+        const response = await this.callClaude(systemPrompt, userPrompt, cacheableContext, story.language);
+        return this.parseStoryResponse(response);
+    }
+
     async generateNextSceneStreaming(storyContext, playerChoice, onParagraph) {
         const { story, recentScenes, importantEvents, inventory, relationships } = storyContext;
 
@@ -79,14 +190,10 @@ class StoryEngine {
                     processableText = buffer.substring(0, endMatch.index);
                     inNarrative = false;
                     isNarrativeComplete = true;
-                    // Update buffer to remove the processed part and the closing quote
-                    // (Though we likely don't care about what comes after for streaming narrative)
-                    // buffer = buffer.substring(endMatch.index + 1); 
                 }
 
                 // 3. Scan for sentences in processableText
                 // We will consume text from the start of 'buffer' (which is 'processableText' + remainder)
-                // Actually, we should work on 'buffer' directly, but limit search to endMatch index if exists.
                 
                 const delimiters = /[.!?。](?:['"」』])?(?=\s|\\n|$)/g;
                 let match;
@@ -130,23 +237,6 @@ class StoryEngine {
                 
                 // 5. If narrative is complete, send any remaining text
                 if (isNarrativeComplete && buffer.length > 0) {
-                    // The buffer now contains the remainder of the narrative (before the quote)
-                    // But wait, we already sliced buffer above? 
-                    // No, 'buffer' was mutated by substring(lastSplitIndex).
-                    // If 'isNarrativeComplete' was true, 'processableText' was the whole narrative.
-                    // 'searchRegion' was 'processableText'.
-                    // 'lastSplitIndex' was where we stopped sending sentences.
-                    // So 'buffer' now starts from there.
-                    // But 'buffer' ALSO contains the closing quote and subsequent JSON if we didn't slice it off in step 2.
-                    
-                    // Let's correct step 2 logic:
-                    // If we found endMatch, we know the exact length of the narrative.
-                    // We process sentences up to that length.
-                    // Any remainder up to that length is the final chunk.
-                    
-                    // To make this simple:
-                    // If complete, we take the remaining "valid" narrative part and send it.
-                    
                     // We need to find where the narrative ENDS in the CURRENT buffer.
                     // Since we shifted buffer, the quote position shifted too.
                     const finalEndMatch = buffer.match(/(?<!\\)"/);
@@ -181,12 +271,11 @@ class StoryEngine {
         // Parse the complete response
         return this.parseStoryResponse(message.content[0].text);
     }
-    
-    // ... (rest of class same as before, helper methods)
-    // I need to include them to write the full file correctly.
-    
+
     buildCacheableContext(story) {
+        // This content doesn't change during the story, so it can be cached
         const isJapanese = story.language === 'ja';
+
         if (isJapanese) {
             return `# 内部ストーリーガイド（プレイヤーには見えません）
 ${story.story_arc || 'ガイドなし'}
@@ -196,6 +285,7 @@ ${story.story_arc || 'ガイドなし'}
 - 性別: ${story.protagonist_gender}
 - アーキタイプ: ${story.protagonist_archetype}`;
         }
+
         return `# Internal Story Guide (Player cannot see this)
 ${story.story_arc || 'No guide defined'}
 
@@ -207,9 +297,12 @@ ${story.story_arc || 'No guide defined'}
 
     buildSystemPrompt(genre, language, difficulty, maturity_level) {
         const isJapanese = language === 'ja';
+
         if (isJapanese) {
             return this.buildJapaneseSystemPrompt(genre, difficulty, maturity_level);
         }
+
+        // English system prompt
         const maturityGuidelines = maturity_level === 'adults'
             ? `# Maturity Level: ADULTS
 - Real consequences: bad choices can lead to serious injury or DEATH
@@ -389,6 +482,7 @@ ${this.getDifficultyGuidelinesJa(difficulty, maturity_level)}
 - 良い例：「輝く装置、点滅するモニター、唸る量子コンピュータで満たされた神秘的な研究室」
 - 悪い例：「研究室に立つ日本人男性エンジニア」（人物禁止！）
 - NPCと会う場合でも、環境や場所を示し、人物は示さない
+- 人物が画像に含まれていると、物語の没入感が損なわれます
 
 # 長編ストーリーテリング
 - ストーリーは50、100、さらに200以上のシーンに及ぶことができます - 急ぐ必要はありません
@@ -476,6 +570,8 @@ ${this.getDifficultyGuidelinesJa(difficulty, maturity_level)}
     buildOpeningPrompt(name, gender, archetype, seed, language, maturityLevel) {
         const isJapanese = language === 'ja';
 
+        // Generate random variety hints to avoid repetitive tropes
+        // Different hints for kids vs adults
         const mysteryVariantsKids = [
             'a missing pet',
             'strange happenings at school',
@@ -572,6 +668,7 @@ IMPORTANT: Avoid common tropes. Instead of overused elements like stolen jewels 
     }
 
     extractLocation(narrativeText) {
+        // Simple heuristic: extract first location-sounding phrase
         const locationPatterns = [
             /(?:in|at|inside|within|outside)\s+(?:the\s+)?([^,.;]+(?:room|alley|street|building|inn|house|chamber|hall|forest|cave|field|dungeon|tower|castle|shop|tavern|market|plaza|courtyard|garden))/i,
             /(?:standing|sitting|lying|walking|running)\s+(?:in|on|at|near)\s+(?:the\s+)?([^,.;]+)/i
