@@ -83,6 +83,24 @@ function transformNarrativeText(text) {
     return transformed;
 }
 
+function cleanTextForSpeech(text) {
+    if (!text) return '';
+    let textToSpeak = text;
+    
+    // Remove ruby tags AND their content (furigana) to avoid double reading
+    // <ruby>漢字<rt>かんじ</rt></ruby> -> 漢字
+    textToSpeak = textToSpeak.replace(/<rt\b[^>]*>[\s\S]*?<\/rt>/gi, '');
+    textToSpeak = textToSpeak.replace(/<rp\b[^>]*>[\s\S]*?<\/rp>/gi, '');
+    
+    // Also remove bracket notation furigana: 漢字《かんじ》 -> 漢字
+    textToSpeak = textToSpeak.replace(/《[^》]*》/g, '');
+    
+    // Finally strip any remaining tags
+    textToSpeak = textToSpeak.replace(/<[^>]*>/g, '');
+    
+    return textToSpeak;
+}
+
 // Load story on page load
 async function loadStory() {
     if (!storyId) {
@@ -115,7 +133,7 @@ async function loadStory() {
             console.log('🎨 Applied theme:', themeClass);
             
             // Play ambient sound if audio enabled
-            // if (audio && audio.enabled) audio.playAmbient(currentStory.genre);
+            if (audio && audio.enabled) audio.playAmbient(currentStory.genre);
         }
 
         // Set language based on story
@@ -134,8 +152,8 @@ async function loadStory() {
             throw new Error('No scene data received');
         }
 
-        // Update UI
-        updateStoryView();
+        // Update UI - pass true for shouldSpeak because this is initial load (not streaming)
+        updateStoryView(true);
 
     } catch (error) {
         console.error('Failed to load story:', error);
@@ -144,7 +162,7 @@ async function loadStory() {
     }
 }
 
-function updateStoryView() {
+function updateStoryView(shouldSpeak = false) {
     // Store scroll position to restore after update
     const scrollY = window.scrollY;
     const scrollX = window.scrollX;
@@ -156,23 +174,11 @@ function updateStoryView() {
     const narrativeHtml = formatNarrative(currentScene.narrative_text);
     document.getElementById('narrativeText').innerHTML = narrativeHtml;
     
-    // Speak narrative if enabled
-    if (audio && audio.enabled) {
-        // Strip HTML tags for speech
-        let textToSpeak = currentScene.narrative_text;
-        
-        // Remove ruby tags AND their content (furigana) to avoid double reading
-        // <ruby>漢字<rt>かんじ</rt></ruby> -> 漢字
-        textToSpeak = textToSpeak.replace(/<rt\b[^>]*>[\s\S]*?<\/rt>/gi, '');
-        textToSpeak = textToSpeak.replace(/<rp\b[^>]*>[\s\S]*?<\/rp>/gi, '');
-        
-        // Also remove bracket notation furigana: 漢字《かんじ》 -> 漢字
-        textToSpeak = textToSpeak.replace(/《[^》]*》/g, '');
-        
-        // Finally strip any remaining tags
-        textToSpeak = textToSpeak.replace(/<[^>]*>/g, '');
-        
-        audio.speak(textToSpeak);
+    // Speak narrative if enabled and requested
+    if (shouldSpeak && audio && audio.enabled) {
+        const textToSpeak = cleanTextForSpeech(currentScene.narrative_text);
+        // Clear queue for new scene
+        audio.speak(textToSpeak, true);
     }
 
     // Update image only if URL changed (prevents collapse/flicker on same scene)
@@ -302,6 +308,11 @@ async function makeChoice(choiceIndex) {
     }
 
     document.querySelector('.narrative-panel').style.display = 'block';
+    
+    // Clear audio queue for new response
+    if (audio && audio.enabled) {
+        audio.stop();
+    }
 
     try {
         const eventSource = new EventSource(`${API_URL}/story/${storyId}/choice?choice_index=${choiceIndex}`);
@@ -315,6 +326,13 @@ async function makeChoice(choiceIndex) {
             const event = JSON.parse(e.data);
 
             if (event.type === 'paragraph') {
+                // Speak paragraph immediately as it arrives
+                if (audio && audio.enabled) {
+                    const textToSpeak = cleanTextForSpeech(event.text);
+                    // Queue speech (don't clear)
+                    audio.speak(textToSpeak, false);
+                }
+                
                 // Find skeleton for this paragraph
                 let skeleton = narrativeText.querySelector(`.skeleton-paragraph[data-index="${paragraphIndex}"]`);
 
@@ -381,7 +399,8 @@ async function makeChoice(choiceIndex) {
 
                 // Show choices and update full view
                 document.getElementById('choicesPanel').style.display = 'flex';
-                updateStoryView();
+                // Pass false to skip speaking because we already streamed it
+                updateStoryView(false);
 
                 // Restore scroll position after scene loads
                 setTimeout(() => {
@@ -487,7 +506,7 @@ function toggleAudio() {
         btn.classList.toggle('active', isEnabled);
         
         if (isEnabled && currentStory) {
-            // audio.playAmbient(currentStory.genre);
+             audio.playAmbient(currentStory.genre);
         }
     }
 }
@@ -529,9 +548,9 @@ function showGameCurtain(genre, maturity) {
     // Create curtain overlay
     const curtainHTML = `
         <div class="curtain-container" data-genre="${genre}" data-maturity="${maturity}">
-            <div class="curtain-inner">
-                ${[...Array(10)].map(() => '<div class="curtain-strip"></div>').join('')}
-            </div>
+        <div class="curtain-inner">
+            ${[...Array(10)].map(() => '<div class="curtain-strip"></div>').join('')}
+        </div>
         </div>
     `;
 

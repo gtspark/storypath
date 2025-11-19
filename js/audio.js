@@ -3,21 +3,21 @@ class AudioManager {
         this.enabled = false;
         this.lang = 'en';
         this.currentAudio = null;
-        this.audioContext = null;
+        this.audioQueue = [];
+        this.isPlaying = false;
         
-        // Initialize Howler for Ambient only
+        // Initialize Howler for SFX and Ambient
         this.sounds = {
+            click: new Howl({
+                src: ['audio/click.wav'],
+                volume: 0.4
+            }),
+            hover: new Howl({
+                src: ['audio/hover.wav'],
+                volume: 0.2
+            }),
             ambient: null
         };
-    }
-
-    initAudioContext() {
-        if (!this.audioContext) {
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (this.audioContext.state === 'suspended') {
-            this.audioContext.resume();
-        }
     }
 
     setLanguage(lang) {
@@ -27,13 +27,16 @@ class AudioManager {
     toggle() {
         this.enabled = !this.enabled;
         if (this.enabled) {
-            this.initAudioContext();
             // Resume ambient if it was playing
             if (this.sounds.ambient && !this.sounds.ambient.playing()) {
                 this.sounds.ambient.play();
             }
+            // Resume queue if paused
+            if (this.audioQueue.length > 0 && !this.isPlaying) {
+                this.processQueue();
+            }
         } else {
-            this.stop();
+            this.stop(); // Stops speech and clears queue
             if (this.sounds.ambient) {
                 this.sounds.ambient.stop();
             }
@@ -41,17 +44,35 @@ class AudioManager {
         return this.enabled;
     }
 
-    async speak(text) {
+    async speak(text, clearQueue = false) {
         if (!this.enabled || !text) return;
 
-        // Cancel current speech
-        this.stop();
+        if (clearQueue) {
+            this.stop();
+        }
+
+        this.audioQueue.push(text);
+        if (!this.isPlaying) {
+            this.processQueue();
+        }
+    }
+
+    async processQueue() {
+        if (this.audioQueue.length === 0) {
+            this.isPlaying = false;
+            return;
+        }
+
+        this.isPlaying = true;
+        const text = this.audioQueue.shift();
 
         try {
             // Use OpenAI TTS via our backend
-            const voice = this.lang === 'ja' ? 'nova' : 'alloy'; // 'nova' is good for Japanese
+            // 'fable' is better for storytelling in English
+            // 'nova' is still best for Japanese
+            const voice = this.lang === 'ja' ? 'nova' : 'fable';
             
-            const response = await fetch('/storypath-api/tts', {
+            const response = await fetch('/api/tts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text, voice })
@@ -63,27 +84,52 @@ class AudioManager {
             const url = URL.createObjectURL(blob);
             
             this.currentAudio = new Audio(url);
-            this.currentAudio.play();
             
-            this.currentAudio.onended = () => {
-                URL.revokeObjectURL(url);
-                this.currentAudio = null;
-            };
+            // Wait for audio to end before processing next
+            await new Promise((resolve) => {
+                this.currentAudio.onended = () => {
+                    URL.revokeObjectURL(url);
+                    this.currentAudio = null;
+                    resolve();
+                };
+                this.currentAudio.onerror = () => {
+                    console.error('Audio playback error');
+                    resolve(); // Skip to next on error
+                };
+                this.currentAudio.play().catch(e => {
+                    console.error('Play error:', e);
+                    resolve();
+                });
+            });
 
         } catch (error) {
             console.error('TTS Error:', error);
             // Fallback to Web Speech API if backend fails
-            this.speakFallback(text);
+            await this.speakFallback(text);
+        }
+
+        // Process next item
+        if (this.enabled) {
+            this.processQueue();
+        } else {
+            this.isPlaying = false;
         }
     }
 
     speakFallback(text) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = this.lang === 'ja' ? 'ja-JP' : 'en-US';
-        window.speechSynthesis.speak(utterance);
+        return new Promise((resolve) => {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = this.lang === 'ja' ? 'ja-JP' : 'en-US';
+            utterance.onend = resolve;
+            utterance.onerror = resolve;
+            window.speechSynthesis.speak(utterance);
+        });
     }
 
     stop() {
+        this.audioQueue = [];
+        this.isPlaying = false;
+        
         if (this.currentAudio) {
             this.currentAudio.pause();
             this.currentAudio = null;
@@ -91,35 +137,13 @@ class AudioManager {
         window.speechSynthesis.cancel();
     }
 
-    playBeep(frequency, type, duration, volume = 0.1) {
-        if (!this.enabled) return;
-        this.initAudioContext();
-
-        const oscillator = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-
-        oscillator.type = type;
-        oscillator.frequency.value = frequency;
-
-        gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
-
-        oscillator.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-
-        oscillator.start();
-        oscillator.stop(this.audioContext.currentTime + duration);
-    }
-
     playSfx(name) {
         if (!this.enabled) return;
 
-        if (name === 'click') {
-            // High pitched short beep
-            this.playBeep(800, 'sine', 0.1, 0.1);
-        } else if (name === 'hover') {
-            // Lower pitched very short beep
-            this.playBeep(400, 'sine', 0.05, 0.05);
+        if (this.sounds[name]) {
+            // Stop if already playing to allow rapid re-triggering
+            this.sounds[name].stop();
+            this.sounds[name].play();
         }
     }
     
