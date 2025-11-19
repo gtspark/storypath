@@ -2,46 +2,20 @@ class AudioManager {
     constructor() {
         this.enabled = false;
         this.lang = 'en';
-        this.audioContext = null;
         this.currentAudio = null;
         
         // Initialize Howler for SFX
         this.sounds = {
-            // Use generated beeps for UI to ensure they work without external assets
-            click: null, 
-            hover: null,
+            click: new Howl({
+                src: ['audio/click.ogg'],
+                volume: 0.4
+            }),
+            hover: new Howl({
+                src: ['audio/hover.ogg'],
+                volume: 0.2
+            }),
             ambient: null
         };
-    }
-
-    initAudioContext() {
-        if (!this.audioContext) {
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (this.audioContext.state === 'suspended') {
-            this.audioContext.resume();
-        }
-    }
-
-    // Generate a simple beep using Web Audio API (no external file needed)
-    playBeep(frequency = 440, duration = 0.1, type = 'sine', volume = 0.1) {
-        if (!this.enabled) return;
-        this.initAudioContext();
-
-        const osc = this.audioContext.createOscillator();
-        const gain = this.audioContext.createGain();
-
-        osc.type = type;
-        osc.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
-        
-        gain.gain.setValueAtTime(volume, this.audioContext.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
-
-        osc.connect(gain);
-        gain.connect(this.audioContext.destination);
-
-        osc.start();
-        osc.stop(this.audioContext.currentTime + duration);
     }
 
     setLanguage(lang) {
@@ -50,10 +24,16 @@ class AudioManager {
 
     toggle() {
         this.enabled = !this.enabled;
-        if (this.enabled) {
-            this.initAudioContext();
-        } else {
+        if (!this.enabled) {
             this.stop();
+            if (this.sounds.ambient) {
+                this.sounds.ambient.stop();
+            }
+        } else {
+            // Resume ambient if it was playing
+            if (this.sounds.ambient && !this.sounds.ambient.playing()) {
+                this.sounds.ambient.play();
+            }
         }
         return this.enabled;
     }
@@ -111,10 +91,8 @@ class AudioManager {
     playSfx(name) {
         if (!this.enabled) return;
 
-        if (name === 'click') {
-            this.playBeep(600, 0.05, 'sine', 0.1);
-        } else if (name === 'hover') {
-            this.playBeep(400, 0.03, 'triangle', 0.05);
+        if (this.sounds[name]) {
+            this.sounds[name].play();
         }
     }
     
@@ -127,18 +105,18 @@ class AudioManager {
             setTimeout(() => this.sounds.ambient.stop(), 1000);
         }
         
-        // Map genre to ambient sound (placeholders for now)
-        const ambientUrls = {
-            fantasy: 'https://assets.codepen.io/21542/fantasy_ambience.mp3',
-            scifi: 'https://assets.codepen.io/21542/scifi_ambience.mp3',
-            mystery: 'https://assets.codepen.io/21542/mystery_ambience.mp3',
-            horror: 'https://assets.codepen.io/21542/horror_ambience.mp3',
-            adventure: 'https://assets.codepen.io/21542/adventure_ambience.mp3'
+        // Map genre to local ambient sound
+        const ambientFiles = {
+            fantasy: 'audio/ambient-fantasy.ogg',
+            scifi: 'audio/ambient-scifi.ogg',
+            mystery: 'audio/ambient-mystery.ogg',
+            horror: 'audio/ambient-horror.ogg',
+            adventure: 'audio/ambient-adventure.ogg'
         };
         
-        if (ambientUrls[genre]) {
+        if (ambientFiles[genre]) {
             this.sounds.ambient = new Howl({
-                src: [ambientUrls[genre]],
+                src: [ambientFiles[genre]],
                 html5: true,
                 loop: true,
                 volume: 0.3
