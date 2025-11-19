@@ -50,123 +50,123 @@ class StoryEngine {
             messages: [{ role: 'user', content: userPrompt }]
         });
 
-        let fullBuffer = '';
+        let buffer = '';
         let inNarrative = false;
-        let narrativeStartIndex = -1;
-        let processedNarrativeLength = 0; // Track how much we've already processed
+        let isNarrativeComplete = false;
 
         stream.on('text', (text) => {
-            fullBuffer += text;
+            buffer += text;
 
-            // Look for the start of the narrative field if we haven't found it
-            if (!inNarrative) {
-                const narrativeMatch = fullBuffer.match(/"narrative"\s*:\s*"/);
+            // 1. Detect start of narrative field
+            if (!inNarrative && !isNarrativeComplete) {
+                const narrativeMatch = buffer.match(/"narrative"\s*:\s*"/);
                 if (narrativeMatch) {
                     inNarrative = true;
-                    narrativeStartIndex = narrativeMatch.index + narrativeMatch[0].length;
+                    // Discard everything before the narrative value starts
+                    const valueStartIndex = narrativeMatch.index + narrativeMatch[0].length;
+                    buffer = buffer.substring(valueStartIndex);
                 }
             }
 
-            // If we're inside the narrative field, process NEW content
+            // 2. Process narrative content
             if (inNarrative) {
-                // Get the full narrative string so far
-                const currentNarrative = fullBuffer.substring(narrativeStartIndex);
+                // Check for end of narrative field (un-escaped quote)
+                // We look for a quote that is NOT preceded by a backslash
+                const endMatch = buffer.match(/(?<!\\)"/);
                 
-                // Check if we've hit the end of the narrative field (closing quote)
-                const endMatch = currentNarrative.match(/(?<!\\)"/);
-                
-                // The text we want to analyze is from processedNarrativeLength up to current end
-                // If ended, analyze up to endMatch.index. If not, analyze up to current length.
-                let analyzeLimit = currentNarrative.length;
+                let processableText = buffer;
                 if (endMatch) {
-                    analyzeLimit = endMatch.index;
-                    inNarrative = false; // We are done with narrative
+                    processableText = buffer.substring(0, endMatch.index);
+                    inNarrative = false;
+                    isNarrativeComplete = true;
+                    // Update buffer to remove the processed part and the closing quote
+                    // (Though we likely don't care about what comes after for streaming narrative)
+                    // buffer = buffer.substring(endMatch.index + 1); 
                 }
 
-                // Extract the UNPROCESSED chunk
-                const unprocessedChunk = currentNarrative.substring(processedNarrativeLength, analyzeLimit);
-
-                if (unprocessedChunk.length > 0) {
-                    // We need to look for sentence delimiters in this new chunk
-                    // But we might have split a delimiter or be in the middle of one?
-                    // Actually, we should buffer until we see a delimiter.
+                // 3. Scan for sentences in processableText
+                // We will consume text from the start of 'buffer' (which is 'processableText' + remainder)
+                // Actually, we should work on 'buffer' directly, but limit search to endMatch index if exists.
+                
+                const delimiters = /[.!?。](?:['"」』])?(?=\s|\\n|$)/g;
+                let match;
+                let lastSplitIndex = 0;
+                
+                // Search ONLY within the valid narrative range
+                const searchLimit = isNarrativeComplete ? processableText.length : buffer.length;
+                const searchRegion = buffer.substring(0, searchLimit);
+                
+                while ((match = delimiters.exec(searchRegion)) !== null) {
+                    const relativeSplitPoint = match.index + match[0].length;
                     
-                    // Simple approach: Find last sentence delimiter in the NEW chunk + leftovers?
-                    // Better approach:
-                    // 1. We have a "pending buffer" of text that hasn't been sent yet.
-                    // 2. We append new tokens to it.
-                    // 3. We scan for delimiters.
-                    // 4. If found, we splice off the sentence and send it.
-                    // 5. We update processedNarrativeLength to where we cut.
+                    // Extract and send the sentence
+                    const chunk = searchRegion.substring(lastSplitIndex, relativeSplitPoint);
                     
-                    // Wait, processedNarrativeLength should track what we have SENT.
-                    // But we might have read text that we haven't sent yet (incomplete sentence).
-                    // So actually we should just look at the WHOLE narrative, but start scanning from processedNarrativeLength.
+                    if (chunk.trim()) {
+                        const cleaned = chunk
+                            .replace(/\\n/g, '\n')
+                            .replace(/\\"/g, '"')
+                            .replace(/\\\\/g, '\\')
+                            .trim();
+                        
+                        if (cleaned) {
+                            const isParaBreak = chunk.includes('\\n\\n');
+                            // console.log(`📤 Sent chunk: ${cleaned.substring(0, 20)}...`);
+                            try {
+                                onParagraph(cleaned, isParaBreak);
+                            } catch (e) {
+                                console.error('Error in streaming callback:', e);
+                            }
+                        }
+                    }
                     
-                    // Regex for sentence ending:
-                    // . ! ? or Japanese 。 followed by optional quote/paren, then space/newline or end of string
-                    // But since we are streaming, "end of string" is not reliable unless inNarrative is false.
+                    lastSplitIndex = relativeSplitPoint;
+                }
+                
+                // 4. Remove processed text from buffer
+                if (lastSplitIndex > 0) {
+                    buffer = buffer.substring(lastSplitIndex);
+                }
+                
+                // 5. If narrative is complete, send any remaining text
+                if (isNarrativeComplete && buffer.length > 0) {
+                    // The buffer now contains the remainder of the narrative (before the quote)
+                    // But wait, we already sliced buffer above? 
+                    // No, 'buffer' was mutated by substring(lastSplitIndex).
+                    // If 'isNarrativeComplete' was true, 'processableText' was the whole narrative.
+                    // 'searchRegion' was 'processableText'.
+                    // 'lastSplitIndex' was where we stopped sending sentences.
+                    // So 'buffer' now starts from there.
+                    // But 'buffer' ALSO contains the closing quote and subsequent JSON if we didn't slice it off in step 2.
                     
-                    const delimiters = /[.!?。](?:['"」』])?(?=\s|\\n|$)/g;
+                    // Let's correct step 2 logic:
+                    // If we found endMatch, we know the exact length of the narrative.
+                    // We process sentences up to that length.
+                    // Any remainder up to that length is the final chunk.
                     
-                    // We search in the substring starting from processedNarrativeLength
-                    let searchRegion = currentNarrative.substring(processedNarrativeLength, analyzeLimit);
+                    // To make this simple:
+                    // If complete, we take the remaining "valid" narrative part and send it.
                     
-                    let match;
-                    let lastSplitIndex = 0;
-                    let foundSplit = false;
-
-                    while ((match = delimiters.exec(searchRegion)) !== null) {
-                         // match.index is relative to searchRegion
-                         const relativeSplitPoint = match.index + match[0].length;
-                         
-                         // Send this chunk!
-                         const chunkToSend = searchRegion.substring(lastSplitIndex, relativeSplitPoint);
-                         
-                         if (chunkToSend.trim()) {
-                             // Unescape JSON
-                             const cleaned = chunkToSend
+                    // We need to find where the narrative ENDS in the CURRENT buffer.
+                    // Since we shifted buffer, the quote position shifted too.
+                    const finalEndMatch = buffer.match(/(?<!\\)"/);
+                    if (finalEndMatch) {
+                        const remainder = buffer.substring(0, finalEndMatch.index);
+                        if (remainder.trim()) {
+                            const cleaned = remainder
                                 .replace(/\\n/g, '\n')
                                 .replace(/\\"/g, '"')
                                 .replace(/\\\\/g, '\\')
                                 .trim();
-                             
-                             if (cleaned) {
-                                 // Check if this chunk ends with double newline (paragraph break)
-                                 // Or if the ORIGINAL text had double newline here
-                                 // This is tricky with JSON escaping.
-                                 // Let's just rely on the text content.
-                                 const isParaBreak = chunkToSend.includes('\\n\\n');
-                                 
-                                 console.log(`📤 Sent chunk: ${cleaned.substring(0, 20)}...`);
-                                 onParagraph(cleaned, isParaBreak);
-                             }
-                         }
-                         
-                         lastSplitIndex = relativeSplitPoint;
-                         foundSplit = true;
-                    }
-                    
-                    if (foundSplit) {
-                        // Update processed length by adding the length of what we successfully processed
-                        processedNarrativeLength += lastSplitIndex;
-                    }
-                    
-                    // Special case: If narrative ended, send the remainder
-                    if (!inNarrative && lastSplitIndex < searchRegion.length) {
-                         const remainder = searchRegion.substring(lastSplitIndex);
-                         if (remainder.trim()) {
-                             const cleaned = remainder
-                                .replace(/\\n/g, '\n')
-                                .replace(/\\"/g, '"')
-                                .replace(/\\\\/g, '\\')
-                                .trim();
-                             if (cleaned) {
-                                 console.log(`📤 Sent final chunk: ${cleaned.substring(0, 20)}...`);
-                                 onParagraph(cleaned, true);
-                             }
-                         }
-                         processedNarrativeLength += remainder.length;
+                            if (cleaned) {
+                                // console.log(`📤 Sent final chunk: ${cleaned.substring(0, 20)}...`);
+                                try {
+                                    onParagraph(cleaned, true);
+                                } catch (e) { console.error('Error in streaming callback:', e); }
+                            }
+                        }
+                        // Clear buffer to stop processing
+                        buffer = ''; 
                     }
                 }
             }
