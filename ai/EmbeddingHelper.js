@@ -55,7 +55,7 @@ class EmbeddingHelper {
         console.log(`📊 Added embedding for story: ${title}`);
     }
 
-    async checkSimilarity(genre, maturityLevel, proposedConcept, similarityThreshold = 0.6) {
+    async checkSimilarity(genre, maturityLevel, proposedConcept, similarityThreshold = 0.35) {
         if (!this.collection) await this.initialize();
 
         const embedding = await this.getEmbedding(proposedConcept);
@@ -80,7 +80,7 @@ class EmbeddingHelper {
                     document: results.documents[0][idx],
                     similarity: sim
                 }))
-                .filter(s => s.similarity > 0.6) // Include anything over 60% similar
+                .filter(s => s.similarity > 0.35) // Include anything over 35% similar
                 .sort((a, b) => b.similarity - a.similarity);
 
             if (maxSimilarity > similarityThreshold) {
