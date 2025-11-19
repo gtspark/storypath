@@ -231,7 +231,7 @@ async function generateStoryContent(storyId, params) {
 
             // Check similarity to existing stories
             const conceptSummary = `Genre: ${genre}, Maturity: ${maturity_level}\nSeed: ${story_seed || ''}\nArc: ${storyArc.substring(0, 500)}`;
-            const similarityCheck = await embeddingHelper.checkSimilarity(genre, maturity_level, conceptSummary, 0.8);
+            const similarityCheck = await embeddingHelper.checkSimilarity(genre, maturity_level, conceptSummary, 0.55);
 
             if (!similarityCheck.isTooSimilar) {
                 console.log(`✅ [${storyId}] ${similarityCheck.message}`);
