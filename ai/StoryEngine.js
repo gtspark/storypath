@@ -55,7 +55,7 @@ Return ONLY the title. No explanations or quotes.`;
     }
 
     async generateStoryArc(storyConfig) {
-        const { genre, language, difficulty, maturity_level, protagonist_name, story_seed } = storyConfig;
+        const { genre, language, difficulty, maturity_level, protagonist_name, story_seed, avoidThemes } = storyConfig;
 
         if (language === 'ja') {
             const prompt = `${genre}ストーリーの内部ガイドを作成してください。
@@ -63,6 +63,12 @@ ${maturity_level === 'kids' ? '子供向け（6-12歳） - 前向きで安全な
 
 主人公: ${protagonist_name || '名前なし'}
 ${story_seed ? `ストーリーコンセプト: ${story_seed}` : ''}
+
+${avoidThemes && avoidThemes.length > 0 ? `⚠️ 重要: 以下のテーマや概念は既に他の物語で使用されているため、完全に避けてください：
+${avoidThemes.map((t, i) => `${i + 1}. ${t}`).join('\n')}
+
+代わりに、完全に異なる設定、キャラクター、謎を探索してください。創造性を発揮し、陳腐な表現や過度に使用されたトロープを避けてください。
+` : ''}
 
 以下を定義してください：
 1. **核心的な秘密**: ${genre === 'mystery' ? '真犯人、動機、隠されたつながり' : '重要な真実や謎（まだプレイヤーには知らされていない）'}
@@ -81,6 +87,12 @@ ${maturity_level === 'kids' ? 'For young children (ages 6-12) - Safe, uplifting 
 
 Protagonist: ${protagonist_name || 'unnamed protagonist'}
 ${story_seed ? `Story concept: ${story_seed}` : ''}
+
+${avoidThemes && avoidThemes.length > 0 ? `⚠️ CRITICAL: The following themes/concepts have already been used in other stories. You MUST completely avoid these:
+${avoidThemes.map((t, i) => `${i + 1}. ${t}`).join('\n')}
+
+Explore a COMPLETELY DIFFERENT setting, characters, and mysteries instead. Be creative and avoid clichés or overused tropes.
+` : ''}
 
 Define:
 1. **Core secrets**: ${genre === 'mystery' ? 'Who the real culprit is, their motive, hidden connections' : 'The key truths or mysteries (not yet revealed to player)'}

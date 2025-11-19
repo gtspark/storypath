@@ -77,6 +77,17 @@ class EmbeddingHelper {
             const similarities = distances.map(d => 1 - d); // Convert distance to similarity
             const maxSimilarity = Math.max(...similarities);
 
+            // Collect all similar stories (not just the most similar)
+            const similarStories = similarities
+                .map((sim, idx) => ({
+                    title: results.metadatas[0][idx].title,
+                    concept: results.metadatas[0][idx].concept,
+                    document: results.documents[0][idx],
+                    similarity: sim
+                }))
+                .filter(s => s.similarity > 0.7) // Include anything over 70% similar
+                .sort((a, b) => b.similarity - a.similarity);
+
             if (maxSimilarity > similarityThreshold) {
                 const mostSimilarIdx = similarities.indexOf(maxSimilarity);
                 const similarTitle = results.metadatas[0][mostSimilarIdx].title;
@@ -85,6 +96,7 @@ class EmbeddingHelper {
                     isTooSimilar: true,
                     similarity: maxSimilarity,
                     similarTo: similarTitle,
+                    similarStories: similarStories,
                     message: `Concept too similar (${(maxSimilarity * 100).toFixed(1)}%) to existing story: "${similarTitle}"`
                 };
             }
@@ -93,6 +105,7 @@ class EmbeddingHelper {
         return {
             isTooSimilar: false,
             similarity: 0,
+            similarStories: [],
             message: 'Concept is unique enough'
         };
     }

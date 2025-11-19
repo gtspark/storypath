@@ -216,7 +216,8 @@ async function generateStoryContent(storyId, params) {
 
         let storyArc;
         let attempt = 0;
-        const maxAttempts = 3;
+        const maxAttempts = 5;
+        const avoidThemes = [];
 
         while (attempt < maxAttempts) {
             attempt++;
@@ -224,7 +225,8 @@ async function generateStoryContent(storyId, params) {
 
             storyArc = await storyEngine.generateStoryArc({
                 genre, language, difficulty, maturity_level,
-                protagonist_name, story_seed
+                protagonist_name, story_seed,
+                avoidThemes: avoidThemes.length > 0 ? avoidThemes : null
             });
 
             // Check similarity to existing stories
@@ -237,8 +239,21 @@ async function generateStoryContent(storyId, params) {
             }
 
             console.log(`⚠️ [${storyId}] ${similarityCheck.message}`);
+
+            // Extract themes to avoid from similar stories
+            if (similarityCheck.similarStories && similarityCheck.similarStories.length > 0) {
+                for (const story of similarityCheck.similarStories) {
+                    // Extract key words/themes from the title and concept
+                    const themeText = `"${story.title}" (${story.concept || 'no concept'})`;
+                    if (!avoidThemes.includes(themeText)) {
+                        avoidThemes.push(themeText);
+                    }
+                }
+                console.log(`🚫 [${storyId}] Now avoiding ${avoidThemes.length} overused themes`);
+            }
+
             if (attempt < maxAttempts) {
-                console.log(`🔄 [${storyId}] Regenerating with more creative prompt...`);
+                console.log(`🔄 [${storyId}] Regenerating with theme avoidance...`);
             }
         }
 

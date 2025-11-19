@@ -1,5 +1,25 @@
 # Claude Code Reference
 
+## Project Layout
+
+**Two directories for one project:**
+- **Frontend**: `/var/www/html/storypath/` - Static HTML/CSS/JS, served by nginx
+  - Has git credentials configured
+  - Use this directory for `git push`
+- **Backend**: `/opt/vodbase/storypath/` - Node.js server, AI logic, database
+  - No git credentials (fails to push)
+  - Copy backend changes to frontend to push
+
+**When making backend changes:**
+```bash
+# 1. Edit files in /opt/vodbase/storypath/
+# 2. Copy to frontend
+cp /opt/vodbase/storypath/server.js /var/www/html/storypath/
+cp /opt/vodbase/storypath/ai/*.js /var/www/html/storypath/ai/
+# 3. Commit and push from frontend
+cd /var/www/html/storypath && git add -A && git commit && git push
+```
+
 ## Cache Busting
 
 When making changes to CSS/JS files that aren't showing up in the browser:
