@@ -617,6 +617,19 @@ function showGameCurtain(genre, maturity) {
             setTimeout(() => {
                 curtainContainer.remove();
                 stageLights.remove();
+
+                // Auto-enable audio and speak scene 1 narrative after curtain opens
+                if (audio && !audio.enabled) {
+                    console.log('🔊 Auto-enabling TTS for scene 1');
+                    audio.toggle(); // Enable audio
+                }
+
+                // Speak the current scene narrative
+                if (audio && audio.enabled && currentScene && currentScene.narrative_text) {
+                    console.log('🎙️ Auto-playing scene 1 TTS');
+                    const textToSpeak = cleanTextForSpeech(currentScene.narrative_text);
+                    audio.speak(textToSpeak, true);
+                }
             }, 2500);
         }, 1200);
     }, 100);
