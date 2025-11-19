@@ -5,6 +5,7 @@ class AudioManager {
         this.currentAudio = null;
         this.audioQueue = [];
         this.isPlaying = false;
+        this.playbackId = 0; // To track invalidation
         
         // Initialize Howler for SFX and Ambient
         this.sounds = {
@@ -51,10 +52,36 @@ class AudioManager {
             this.stop();
         }
 
-        this.audioQueue.push(text);
+        // Start fetching IMMEDIATELY
+        // We store the promise in the queue, not the text
+        const promise = this.fetchAudio(text).catch(err => {
+            console.error('Fetch failed for:', text.substring(0, 20), err);
+            return null;
+        });
+
+        this.audioQueue.push({
+            text: text,
+            promise: promise
+        });
+
         if (!this.isPlaying) {
             this.processQueue();
         }
+    }
+
+    async fetchAudio(text) {
+        // 'fable' is better for storytelling in English
+        // 'onyx' or 'shimmer' are better for Japanese storytelling than 'nova'
+        const voice = this.lang === 'ja' ? 'onyx' : 'fable';
+        
+        const response = await fetch('/api/tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, voice })
+        });
+
+        if (!response.ok) throw new Error('TTS request failed');
+        return await response.blob();
     }
 
     async processQueue() {
@@ -64,55 +91,51 @@ class AudioManager {
         }
 
         this.isPlaying = true;
-        const text = this.audioQueue.shift();
+        const currentId = this.playbackId;
+        const item = this.audioQueue.shift();
 
         try {
-            // Use OpenAI TTS via our backend
-            // 'fable' is better for storytelling in English
-            // 'onyx' or 'shimmer' are better for Japanese storytelling than 'nova'
-            const voice = this.lang === 'ja' ? 'onyx' : 'fable';
-            
-            const response = await fetch('/api/tts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text, voice })
-            });
+            // Wait for the pre-fetched audio
+            const blob = await item.promise;
 
-            if (!response.ok) throw new Error('TTS request failed');
+            // Check if stopped/cleared while fetching
+            if (this.playbackId !== currentId || !this.enabled) {
+                return;
+            }
 
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-            
-            this.currentAudio = new Audio(url);
-            
-            // Wait for audio to end before processing next
-            await new Promise((resolve) => {
-                this.currentAudio.onended = () => {
-                    URL.revokeObjectURL(url);
-                    this.currentAudio = null;
-                    resolve();
-                };
-                this.currentAudio.onerror = () => {
-                    console.error('Audio playback error');
-                    resolve(); // Skip to next on error
-                };
-                this.currentAudio.play().catch(e => {
-                    console.error('Play error:', e);
-                    resolve();
+            if (!blob) {
+                // Fetch failed, use fallback
+                await this.speakFallback(item.text);
+            } else {
+                const url = URL.createObjectURL(blob);
+                this.currentAudio = new Audio(url);
+                
+                await new Promise((resolve) => {
+                    this.currentAudio.onended = () => {
+                        URL.revokeObjectURL(url);
+                        this.currentAudio = null;
+                        resolve();
+                    };
+                    this.currentAudio.onerror = () => {
+                        console.warn('Audio playback error');
+                        resolve();
+                    };
+                    this.currentAudio.play().catch(e => {
+                         console.warn('Play failed', e);
+                         resolve();
+                    });
                 });
-            });
+            }
 
-        } catch (error) {
-            console.error('TTS Error:', error);
-            // Fallback to Web Speech API if backend fails
-            await this.speakFallback(text);
+        } catch (err) {
+            console.error('Queue processing error:', err);
         }
 
-        // Process next item
-        if (this.enabled) {
+        // Check again before continuing (in case stop() was called during playback)
+        if (this.playbackId === currentId && this.enabled) {
             this.processQueue();
         } else {
-            this.isPlaying = false;
+            if (this.playbackId === currentId) this.isPlaying = false;
         }
     }
 
@@ -127,6 +150,7 @@ class AudioManager {
     }
 
     stop() {
+        this.playbackId++; // Invalidate pending operations
         this.audioQueue = [];
         this.isPlaying = false;
         
