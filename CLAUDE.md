@@ -112,3 +112,26 @@ Japanese vertical mode uses vertical skeleton bars:
 - Height: 70vh (max 800px)
 - Vertical shimmer animation
 - CSS in game.css around line ~994
+
+## Future Optimizations (Tabled for Later)
+
+API & UX improvements reviewed by Cursor - prioritized by actual impact vs effort:
+
+| Phase | Priority | Effort | Item | Expected Impact | Notes |
+|-------|----------|--------|------|----------------|-------|
+| **Phase 1** | High | 30min | Exponential backoff for wizard polling | -50% requests | Currently fixed 2s intervals |
+| **Phase 1** | High | 30min | Replace `alert()` with toast notifications | Better UX | 9 instances across app |
+| **Phase 1** | High | 15min | Add loading states to password unlock | Better UX | Currently no feedback |
+| **Phase 2** | Medium | 1hr | Create `/api/story/:id/title` endpoint | -95% bandwidth | preview.html polls full story for title |
+| **Phase 2** | Medium | 1hr | Exponential backoff for image polling | -60% requests | Currently fixed 3s intervals |
+| **Phase 2** | Medium | 45min | Store story data in DOM instead of re-fetching | -95% data transfer | index.js re-fetches all stories for password modal |
+| **Phase 3** | Low | 1hr | Auto-retry with exponential backoff | Better resilience | Network error handling |
+| **Phase 3** | Low | 1hr | Optimistic UI for choice selection | +200-300ms perceived speed | Show feedback before API response |
+
+**Skipped (Over-engineering):**
+- WebSockets/SSE (story generation is one-time, polling is fine)
+- Service workers (no offline mode possible - requires Claude/FLUX/OpenAI APIs)
+- Batch status APIs (never check multiple stories simultaneously)
+- Aggressive caching (stories are actively being generated, stale data would confuse users)
+
+**Real Bottleneck:** FLUX image generation (5-10s) - can't optimize this away
