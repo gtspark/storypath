@@ -649,7 +649,10 @@ ${this.getDifficultyGuidelinesJa(difficulty, maturity_level)}
 
 ${seed ? `ストーリーアイデア: ${seed}` : `バラエティのヒント（使用しても無視してもよい）: ${randomMysteryHint}、舞台は${randomSettingHint}`}
 
-最初のシーンを生成してください。主人公を紹介し、冒険の舞台を設定し、最初の重要な選択を提示してください。ワクワクして、魔法的で、魅力的なオープニングにしましょう！
+${maturityLevel === 'kids' && gender === 'male' ? `
+ビジュアル美学の好み: 男の子の主人公には、アクション重視で冒険的なイメージを優先してください - ロボット、宇宙船、乗り物、かっこいいテクノロジー、探検、ダイナミックな環境を考えてください。ストーリーアイデアが特に要求しない限り、過度に可愛らしい美学は避けてください。` : ''}
+
+最初のシーンを生成してください。主人公を紹介し、冒険の舞台を設定し、最初の重要な選択を提示してください。${maturityLevel === 'kids' && gender === 'male' ? 'ワクワクして、アクション満載で' : 'ワクワクして、魔法的で'}、魅力的なオープニングにしましょう！
 
 重要: 一般的な比喩を避けてください。宝石の盗難や月のモチーフなどの使い古された要素ではなく、新鮮で予想外のひねりを加えてください。`;
         }
@@ -663,7 +666,10 @@ Protagonist:
 
 ${seed ? `Story idea: ${seed}` : `Variety hint (use or ignore): ${randomMysteryHint} in a ${randomSettingHint}`}
 
-Generate the opening scene. Introduce the protagonist, set the stage for adventure, and present the first meaningful choice. Make it exciting, whimsical, and engaging!
+${maturityLevel === 'kids' && gender === 'male' ? `
+Visual aesthetic preference: For a young boy protagonist, lean toward action-focused and adventurous imagery - think robots, spaceships, vehicles, cool technology, exploration, and dynamic environments. Avoid overly whimsical or cutesy aesthetics unless the story idea specifically calls for it.` : ''}
+
+Generate the opening scene. Introduce the protagonist, set the stage for adventure, and present the first meaningful choice. Make it exciting${maturityLevel === 'kids' && gender === 'male' ? ' and action-packed' : ', whimsical, and engaging'}!
 
 IMPORTANT: Avoid common tropes. Instead of overused elements like stolen jewels or moon motifs, bring fresh and unexpected twists.`;
     }

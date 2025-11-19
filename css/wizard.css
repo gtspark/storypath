@@ -661,3 +661,18 @@
         width: 100%;
     }
 }
+
+/* Tooltip icon styling */
+.tooltip-icon {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 0.9em;
+    color: #8b5cf6;
+    cursor: help;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.tooltip-icon:hover {
+    opacity: 1;
+}
