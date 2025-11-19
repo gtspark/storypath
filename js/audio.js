@@ -52,20 +52,42 @@ class AudioManager {
             this.stop();
         }
 
-        // Start fetching IMMEDIATELY
-        // We store the promise in the queue, not the text
-        const promise = this.fetchAudio(text).catch(err => {
-            console.error('Fetch failed for:', text.substring(0, 20), err);
-            return null;
-        });
-
+        // Add to queue as pending
         this.audioQueue.push({
             text: text,
-            promise: promise
+            status: 'pending',
+            promise: null
         });
 
+        // Trigger processing
         if (!this.isPlaying) {
             this.processQueue();
+        }
+        
+        // Trigger lookahead fetching
+        this.manageBuffer();
+    }
+
+    // Manages the lookahead buffer (pre-fetching)
+    manageBuffer() {
+        if (!this.enabled) return;
+
+        // Find items that are pending and start fetching them
+        // Limit concurrency to avoid flooding network (e.g., max 3 parallel fetches)
+        let activeFetches = this.audioQueue.filter(item => item.status === 'fetching').length;
+        const maxFetches = 3;
+
+        for (const item of this.audioQueue) {
+            if (activeFetches >= maxFetches) break;
+
+            if (item.status === 'pending') {
+                item.status = 'fetching';
+                item.promise = this.fetchAudio(item.text).catch(err => {
+                    console.error('Fetch failed for:', item.text.substring(0, 20), err);
+                    return null;
+                });
+                activeFetches++;
+            }
         }
     }
 
@@ -74,7 +96,7 @@ class AudioManager {
         // 'onyx' or 'shimmer' are better for Japanese storytelling than 'nova'
         const voice = this.lang === 'ja' ? 'onyx' : 'fable';
         
-        const response = await fetch('/storypath-api/tts', {
+        const response = await fetch('/api/tts', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text, voice })
@@ -92,9 +114,19 @@ class AudioManager {
 
         this.isPlaying = true;
         const currentId = this.playbackId;
-        const item = this.audioQueue.shift();
+        
+        // Ensure the next item is being fetched (if it wasn't caught by manageBuffer)
+        this.manageBuffer();
+        
+        const item = this.audioQueue[0]; // Peek first
 
         try {
+            // If not fetching yet, force start (should happen in manageBuffer but safety check)
+            if (item.status === 'pending') {
+                item.status = 'fetching';
+                item.promise = this.fetchAudio(item.text).catch(err => null);
+            }
+
             // Wait for the pre-fetched audio
             const blob = await item.promise;
 
@@ -102,6 +134,12 @@ class AudioManager {
             if (this.playbackId !== currentId || !this.enabled) {
                 return;
             }
+
+            // Remove from queue NOW, before playing, so next item becomes index 0
+            this.audioQueue.shift();
+            
+            // Trigger fetch for NEXT items now that a slot is free
+            this.manageBuffer();
 
             if (!blob) {
                 // Fetch failed, use fallback
@@ -129,9 +167,13 @@ class AudioManager {
 
         } catch (err) {
             console.error('Queue processing error:', err);
+             // If error, ensure we remove the item so we don't get stuck
+             if (this.audioQueue[0] === item) {
+                 this.audioQueue.shift();
+             }
         }
 
-        // Check again before continuing (in case stop() was called during playback)
+        // Check again before continuing
         if (this.playbackId === currentId && this.enabled) {
             this.processQueue();
         } else {
