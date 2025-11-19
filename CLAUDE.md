@@ -1,24 +1,27 @@
 # Claude Code Reference
 
-## Project Layout
+## Git Workflow (IMPORTANT!)
 
-**Two directories for one project:**
-- **Frontend**: `/var/www/html/storypath/` - Static HTML/CSS/JS, served by nginx
-  - Has git credentials configured
-  - Use this directory for `git push`
-- **Backend**: `/opt/vodbase/storypath/` - Node.js server, AI logic, database
-  - No git credentials (fails to push)
-  - Copy backend changes to frontend to push
+**ONLY work in `/opt/vodbase/storypath/` - it's the single source of truth.**
 
-**When making backend changes:**
 ```bash
-# 1. Edit files in /opt/vodbase/storypath/
-# 2. Copy to frontend
-cp /opt/vodbase/storypath/server.js /var/www/html/storypath/
-cp /opt/vodbase/storypath/ai/*.js /var/www/html/storypath/ai/
-# 3. Commit and push from frontend
-cd /var/www/html/storypath && git add -A && git commit && git push
+# Make all edits in backend directory
+cd /opt/vodbase/storypath
+
+# Edit any files (backend OR frontend)
+vim server.js
+vim js/game.js
+vim css/main.css
+
+# Commit and push (auto-syncs frontend files to /var/www/html/storypath/)
+git add -A
+git commit -m "Your message"
+git push origin master
 ```
+
+**DO NOT edit files in `/var/www/html/storypath/` - they are auto-synced and will be overwritten!**
+
+The post-commit hook automatically copies frontend files (HTML/CSS/JS/images) to the web directory.
 
 ## Cache Busting
 
