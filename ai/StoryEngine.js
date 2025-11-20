@@ -770,14 +770,28 @@ Important guidelines:
 - Each scene should advance understanding or explore different aspects
 - Repeating the same revelatory moment kills engagement in long stories
 
-**ENDING THE STORY**
-Check the story arc's "Intended ending" - when player choices have brought them to the climactic moment described in the arc:
-- Offer ONE dramatic final choice that will determine the ending
-- Mark it with: {"is_final_choice": true, "text": "Your final decision...", "type": "action", "emoji": "⚡"}
-- After player makes this final choice, generate a LONG conclusion (6-10 paragraphs)
-- End with: {"story_complete": true, "ending_type": "triumph|tragedy|bittersweet|mystery"}
-- The story length should match its natural arc - don't artificially extend or truncate based on scene count
-- Only end when the central mystery/conflict from the arc has reached its resolution point`;
+**ENDING THE STORY** (Evaluate after EVERY scene)
+
+After generating each scene, review the story arc's "Intended ending" section and evaluate:
+
+1. Has the player:
+   - Reached the key location from any resolution path (optimal/acceptable/tragic)?
+   - Confronted the central antagonist/guardian/obstacle described in the arc?
+   - Obtained, activated, or lost the story's MacGuffin/objective?
+   - Resolved or catastrophically failed the central conflict?
+
+2. IF ALL CONDITIONS FOR A RESOLUTION PATH ARE MET:
+   → The story has reached its climax
+   → Generate ONE final choice that will determine the specific ending type
+   → Mark it: {"is_final_choice": true, "text": "Your final decision...", "type": "action", "emoji": "⚡"}
+   → After player selects this choice: generate a LONG conclusion (6-10 paragraphs)
+   → End with: {"story_complete": true, "ending_type": "triumph|tragedy|bittersweet|mystery"}
+
+3. IF OBJECTIVES ARE NOT YET MET:
+   → Continue the story normally
+   → Ensure at least ONE choice progresses toward a resolution path from the arc
+   → Players may ignore this choice and pursue other interactions for as long as they wish
+   → Never force urgency or rush the player - let the story unfold naturally`;
     }
 
     async callClaudeStreaming(systemPrompt, userPrompt, cacheableContext = null, language = 'en', onChunk = null) {
