@@ -251,7 +251,7 @@ ${story.story_arc || 'No guide defined'}
         }
 
         // English system prompt
-        const maturityGuidelines = maturity_level === 'adults'
+        const maturityGuidelines = maturity_level === 'adult'
             ? `# Maturity Level: ADULTS
 - Real consequences: bad choices can lead to serious injury or DEATH
 - If HP reaches 0 or player makes catastrophically bad choices, END THE STORY with a game over
@@ -345,7 +345,7 @@ IMPORTANT: Narrative and choices must be in ${language === 'ja' ? 'Japanese (日
     }
 
     buildJapaneseSystemPrompt(genre, difficulty, maturity_level) {
-        const maturityGuidelines = maturity_level === 'adults'
+        const maturityGuidelines = maturity_level === 'adult'
             ? `# 成熟度レベル: 大人向け
 - 本当の結果：悪い選択は重傷または死につながる可能性がある
 - HPが0になるか、致命的な選択をした場合、ゲームオーバーで物語を終わらせる
@@ -466,7 +466,7 @@ ${this.getDifficultyGuidelinesJa(difficulty, maturity_level)}
     }
 
     getDifficultyGuidelines(difficulty, maturity_level) {
-        if (maturity_level === 'adults') {
+        if (maturity_level === 'adult') {
             const guidelines = {
                 casual: '- Forgiving but real - mistakes cost resources or time, not life\n- Focus on story choices and character development\n- HP can decrease but death is unlikely',
                 balanced: '- Meaningful consequences - poor choices can injure or kill\n- Player needs strategic thinking\n- HP management matters - death is possible but avoidable',
@@ -484,7 +484,7 @@ ${this.getDifficultyGuidelinesJa(difficulty, maturity_level)}
     }
 
     getDifficultyGuidelinesJa(difficulty, maturity_level) {
-        if (maturity_level === 'adults') {
+        if (maturity_level === 'adult') {
             const guidelines = {
                 casual: '- 寛容だが現実的 - ミスはリソースや時間を失うが、命は失わない\n- ストーリーの選択とキャラクター開発に焦点\n- HPは減少するが死ぬことは少ない',
                 balanced: '- 意味のある結果 - 悪い選択は怪我や死につながる可能性\n- プレイヤーは戦略的思考が必要\n- HP管理が重要 - 死は可能だが回避可能',
