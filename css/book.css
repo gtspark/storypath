@@ -213,9 +213,11 @@ body::before {
 }
 
 .scene-text-container {
-    padding: 40px 48px;
+    padding: 60px 50px; /* Increased top/bottom padding */
     width: 100%;
     max-width: 100%;
+    /* Ensure content doesn't touch edges */
+    box-sizing: border-box; 
 }
 
 /* Typography for Reading */

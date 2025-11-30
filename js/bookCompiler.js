@@ -122,7 +122,7 @@ class BookCompiler {
         onProgress(100);
         
         const layout = {
-            version: 8,  // v8: Remove tilt, fix pagination
+            version: 9,  // v9: Safer margins and measurement
             storyId: storyData.id,
             title: storyData.title,
             language: storyData.language,
@@ -141,13 +141,14 @@ class BookCompiler {
 
     /**
      * Calculate optimal font size to fill the text page nicely
-     * Aims for 70-95% page fill
+     * Aims for 60-85% page fill (reduced from 95% to avoid overflow/crowding)
      */
     calculateOptimalFontSize(paragraphs) {
         const settings = this.fontSettings[this.maturityLevel];
-        const availableHeight = this.pageHeight - this.PADDING.top - this.PADDING.bottom;
-        const targetFillMin = 0.65;
-        const targetFillMax = 0.95;
+        // Use reduced height for calculation to ensure bottom margin safety
+        const availableHeight = (this.pageHeight - this.PADDING.top - this.PADDING.bottom) * 0.9;
+        const targetFillMin = 0.50;
+        const targetFillMax = 0.85;
         
         // Binary search for optimal font size
         let minSize = settings.minSize;
@@ -184,6 +185,12 @@ class BookCompiler {
     measureTextHeight(paragraphs, fontSize) {
         const settings = this.fontSettings[this.maturityLevel];
         let totalHeight = 0;
+        
+        // Update container width to match new padding + safety buffer
+        // Real padding is 50px left/right = 100px total
+        // Safety buffer = 10px
+        const measureWidth = this.pageWidth - 110; 
+        this.measureContainer.style.width = `${measureWidth}px`;
         
         paragraphs.forEach((para, idx) => {
             const p = document.createElement('p');
