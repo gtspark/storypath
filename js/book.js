@@ -116,14 +116,8 @@ async function pollCompilationStatus() {
 }
 
 async function triggerCompilation() {
-    showCompilingStatus(0);
-    
-    try {
-        await fetch(`${API_URL}/story/${storyId}/compile-book`, { method: 'POST' });
-        pollCompilationStatus();
-    } catch (e) {
-        Toast.error('Failed to start book compilation', 'Error');
-    }
+    // Redirect to compile-book.html which does actual DOM-based compilation
+    window.location.href = `compile-book.html?story=${storyId}`;
 }
 
 function getRandomQuote(endingType) {
