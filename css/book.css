@@ -300,10 +300,6 @@ body::before {
 .page:nth-child(odd) .page-number {
     right: 32px;
 }
-    pointer-events: none;
-    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.3);
-    z-index: 1;
-}
 
 /* ===== Inner Title Page ===== */
 .title-page-content {
@@ -519,6 +515,8 @@ body::before {
 
 .page.spread-text .scene-text-container {
     padding: 40px;
+    display: flex;
+    flex-direction: column;
     justify-content: center;
     height: 100%;
 }
