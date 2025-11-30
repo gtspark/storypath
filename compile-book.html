@@ -231,7 +231,8 @@
                 }
                 
                 const storyData = data.story;
-                const scenes = data.pages.filter(p => p.type === 'narrative');
+                // Pages from API have: scene_number, text, image_url, image_prompt
+                const scenes = data.pages.filter(p => p.text && p.text.trim());
                 
                 // Update title for completion screen
                 document.getElementById('bookTitle').textContent = `"${storyData.title}"`;
