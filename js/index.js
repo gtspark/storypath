@@ -143,7 +143,7 @@ function init3DBookAnimations() {
         hitbox.addEventListener("mouseleave", () => hoverIn.reverse());
 
         // Click event
-        hitbox.addEventListener("click", () => {
+        hitbox.addEventListener("click", async () => {
             const storyId = hitbox.getAttribute('data-book-id');
             const isComplete = hitbox.getAttribute('data-complete') === 'true';
             const isBookReady = hitbox.getAttribute('data-book-ready') === 'true';
@@ -159,8 +159,24 @@ function init3DBookAnimations() {
                             if (fullStory) showPasswordModal(fullStory);
                         });
                 } else if (isComplete && isBookReady) {
-                    // Story complete and book ready - go to book reader
-                    window.location.href = `book.html?story=${storyId}`;
+                    // Check if book layout version is current
+                    try {
+                        const response = await fetch(`${API_URL}/story/${storyId}/book-layout`);
+                        const data = await response.json();
+                        const CURRENT_LAYOUT_VERSION = 3; // Picture book spread layout
+                        
+                        if (data.layout && data.layout.version >= CURRENT_LAYOUT_VERSION) {
+                            // Layout is current - go to book reader
+                            window.location.href = `book.html?story=${storyId}`;
+                        } else {
+                            // Layout outdated - recompile
+                            console.log('Book layout outdated, recompiling...');
+                            window.location.href = `compile-book.html?story=${storyId}`;
+                        }
+                    } catch (e) {
+                        // Error checking - just go to compile
+                        window.location.href = `compile-book.html?story=${storyId}`;
+                    }
                 } else if (isComplete) {
                     // Story complete but book not ready - go to compile page
                     window.location.href = `compile-book.html?story=${storyId}`;
