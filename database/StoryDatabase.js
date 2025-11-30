@@ -160,12 +160,12 @@ class StoryDatabase {
     // Choice operations
     async addChoices(sceneId, choices) {
         const stmt = this.db.prepare(`
-            INSERT INTO choices (scene_id, choice_text, choice_type)
-            VALUES (?, ?, ?)
+            INSERT INTO choices (scene_id, choice_text, choice_type, ending_path)
+            VALUES (?, ?, ?, ?)
         `);
 
         for (const choice of choices) {
-            stmt.run(sceneId, choice.text, choice.type || 'action');
+            stmt.run(sceneId, choice.text, choice.type || 'action', choice.ending_path ? 1 : 0);
         }
 
         return new Promise((resolve, reject) => {

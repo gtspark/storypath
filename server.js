@@ -8,6 +8,9 @@ const fs = require('fs');
 const fsPromises = require('fs').promises;
 const crypto = require('crypto');
 
+// Stranger detection & lockdown
+const { notifyIfStranger, getClientIP, checkLockdown } = require('/home/admin/shared/notify.js');
+
 const StoryDatabase = require('./database/StoryDatabase');
 const StoryEngine = require('./ai/StoryEngine');
 const ImageGenerator = require('./ai/ImageGenerator');
@@ -115,13 +118,16 @@ app.get('/api/stories', async (req, res) => {
 });
 
 // Create new story
-app.post('/api/story/create', async (req, res) => {
+app.post('/api/story/create', checkLockdown('storypath'), async (req, res) => {
     try {
         const {
             genre, language, difficulty, maturity_level,
             protagonist_name, protagonist_gender, protagonist_archetype,
             story_seed, password
         } = req.body;
+
+        // Alert if stranger is creating a story
+        notifyIfStranger(req, `📖 StoryPath: Creating "${genre}" story as "${protagonist_name}"`);
 
         console.log('📥 Story creation request:', {
             genre, language, difficulty, maturity_level,
@@ -423,8 +429,8 @@ app.get('/api/story/:id', async (req, res) => {
 });
 
 // Make a choice and advance story (supports both GET with query param and POST with body for SSE)
-app.get('/api/story/:id/choice', handleChoice);
-app.post('/api/story/:id/choice', handleChoice);
+app.get('/api/story/:id/choice', checkLockdown('storypath'), handleChoice);
+app.post('/api/story/:id/choice', checkLockdown('storypath'), handleChoice);
 
 async function handleChoice(req, res) {
     try {
@@ -436,6 +442,10 @@ async function handleChoice(req, res) {
 
         // Get story and current scene
         const story = await db.getStory(id);
+
+        // Alert if stranger is advancing a story
+        notifyIfStranger(req, `📖 StoryPath: Choice made in "${story?.title || id}"`);
+
         const currentScene = await db.getSceneByNumber(id, story.current_scene_number);
 
         // Mark choice as selected

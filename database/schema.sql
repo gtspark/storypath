@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS choices (
     scene_id INTEGER NOT NULL,
     choice_text TEXT NOT NULL,
     choice_type TEXT DEFAULT 'action',  -- action, dialogue, investigate
+    ending_path BOOLEAN DEFAULT 0,  -- marks choice as moving toward story conclusion
     was_selected BOOLEAN DEFAULT 0,
     selected_at DATETIME,
     FOREIGN KEY (scene_id) REFERENCES scenes(id) ON DELETE CASCADE

@@ -1,6 +1,7 @@
 class AudioManager {
     constructor() {
-        this.enabled = false;
+        // Load saved mute state from localStorage (default: muted/disabled)
+        this.enabled = localStorage.getItem('storypath-audio-enabled') === 'true';
         this.lang = 'en';
         this.currentAudio = null;
         this.audioQueue = [];
@@ -27,6 +28,8 @@ class AudioManager {
 
     toggle() {
         this.enabled = !this.enabled;
+        // Save state to localStorage
+        localStorage.setItem('storypath-audio-enabled', this.enabled);
         if (this.enabled) {
             // Resume ambient if it was playing
             if (this.sounds.ambient && !this.sounds.ambient.playing()) {

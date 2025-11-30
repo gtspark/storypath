@@ -372,7 +372,7 @@ Generate the next scene in JSON format:
 5. Balance challenge with fun (difficulty: ${difficulty})
 6. Maintain story consistency using provided memories
 7. Image prompts: vivid, detailed, whimsical style (50-100 words, ALWAYS in English)
-8. Never end the story abruptly - always provide meaningful choices
+8. Endings should feel earned, not abrupt - build to satisfying conclusions
 9. Make the player feel like their choices shape the adventure!
 
 # Image Prompt Guidelines
@@ -473,7 +473,7 @@ ${this.getDifficultyGuidelinesJa(difficulty, maturity_level)}
 5. チャレンジと楽しさのバランス（難易度: ${difficulty}）
 6. 提供された記憶を使用してストーリーの一貫性を保つ
 7. 画像プロンプト：鮮やかで詳細、魔法的なスタイル（50-100単語、必ず英語で）
-8. ストーリーを突然終わらせない - 常に意味のある選択肢を提供
+8. 結末は自然に感じさせる - 満足感のある結論に向かって構築する
 9. プレイヤーの選択が冒険を形作ると感じさせる！
 
 # 画像プロンプトガイドライン
@@ -729,22 +729,49 @@ ${JSON.stringify(context, null, 2)}
 - 選択肢に${story.maturity_level === 'kids' ? '優しい袋小路を含めてください（NPCがリダイレクト）' : '本当の袋小路や間違いを含めてください'}
 - ${story.maturity_level === 'kids' ? '各袋小路は1シーンを消費しますが、NPCは思いやりをもってプレイヤーを正しい方向に導きます' : '袋小路はプレイヤーを後退させ、複数のシーンを消費する可能性があります'}
 - 核心的な秘密を早く明かしすぎないでください - ストーリーに呼吸する余地を与えてください
-- ストーリーの長さは自然に展開させてください。急ぐ必要はありません
 
 **重要：繰り返しを避ける**
-- recent_scenesを注意深く確認 - 物語のビート（例：鏡で自分を調べる、身体的な違和感に気づく、特定の啓示）がすでに探索されている場合、繰り返さないでください
+- recent_scenesを注意深く確認 - 物語のビートがすでに探索されている場合、繰り返さないでください
 - 新しい角度、新しい発見を見つけるか、プロットを前進させてください
 - 各シーンは理解を深めるか、異なる側面を探索する必要があります
-- 同じ啓示的な瞬間を繰り返すことは、長編ストーリーでの没入感を損ないます
 
-**ストーリーの終了**
-ストーリーアークの「意図された結末」を確認 - プレイヤーの選択がアークに記載されたクライマックスの瞬間に到達したとき：
-- 結末を決定する劇的な最終選択を1つ提供してください
-- {"is_final_choice": true, "text": "最終的な決断...", "type": "action", "emoji": "⚡"}でマークしてください
-- プレイヤーがこの最終選択を行った後、長い結論を生成してください（6〜10段落）
-- {"story_complete": true, "ending_type": "triumph|tragedy|bittersweet|mystery"}で終了してください
-- ストーリーの長さは自然なアークに合わせる - シーン数に基づいて人為的に延長または短縮しないでください
-- アークの中心的な謎/対立が解決点に達したときにのみ終了してください`;
+**プレイヤー主導のペース配分（重要）**
+
+プレイヤーがストーリーの長さをコントロールします。あなたの仕事は、終わりに向かう選択肢を常に提供しつつ、プレイヤーが望む限り探索を続けられるようにすることです。
+
+${currentScene < 20 ? `
+シーン${currentScene} - 序盤（シーン1-19）:
+- 世界観構築、キャラクター開発、謎の設定に集中
+- まだ「結末への道」の選択肢は提供しないでください - 早すぎます
+- ストーリーを自然に展開させてください
+- すべての3-4つの選択肢は冒険の異なる側面を探索するものにしてください
+` : currentScene < 40 ? `
+シーン${currentScene} - 中盤（シーン20-39）:
+- ストーリーが確立され、プレイヤーは解決に向かい始めたいかもしれません
+- 必須: 正確に1つの選択肢は「結末への道」で、ストーリーアークの意図された結末に向かうものにしてください
+- 🏁絵文字でマークし、メインプロットを進めることが明確にわかるようにしてください
+- 他の2-3つの選択肢はサイドアドベンチャー、探索、またはキャラクターの瞬間を提供してください
+- プレイヤーは結末への道を無視して、好きなだけ探索できます
+` : `
+シーン${currentScene} - 終盤（シーン40以上）:
+- プレイヤーは広範囲に探索しています - ペースを尊重しつつ、解決をアクセス可能にしてください
+- 必須: 正確に1つの選択肢は「結末への道」（🏁でマーク）にしてください
+- この選択肢は「真実の瞬間」のように感じさせてください - 核心的な対立に直面する
+- 他の選択肢はまだ探索を提供できますが、結末への道はますます重要に感じさせてください
+`}
+
+**結末への道の選択肢フォーマット**（シーン20以上）:
+必須の結末への道の選択肢を含める場合、次のようにフォーマットしてください:
+{"text": "[解決に向けてメインプロットを進めるアクション]", "type": "action", "emoji": "🏁", "ending_path": true}
+
+**フィナーレのトリガー**
+
+プレイヤーが結末への道の選択肢を選び、ストーリーアークの解決条件が満たされたとき:
+1. 劇的な最終選択を1つ生成: {"is_final_choice": true, "text": "...", "type": "action", "emoji": "⚡"}
+2. 最終選択後、長い満足感のある結論を生成（6-10段落）
+3. 終了: {"story_complete": true, "ending_type": "triumph|tragedy|bittersweet|mystery"}
+
+忘れないで: プレイヤーは終わることを強制されません。100シーン以上探索したい場合はそれでOKです。あなたの仕事は結末への道を利用可能にすることで、強制することではありません。`;
         }
 
         return `# Current scene number: ${currentScene}
@@ -762,7 +789,6 @@ Important guidelines:
 - Include ${story.maturity_level === 'kids' ? 'gentle dead-ends in choices (NPCs redirect)' : 'real dead-ends and mistakes in choices'}
 - ${story.maturity_level === 'kids' ? 'Each dead-end burns one scene, but NPCs kindly guide player back on track' : 'Dead-ends can set player back and burn multiple scenes'}
 - Don't reveal core secrets too early - let the story breathe
-- Let story length unfold naturally. Don't rush it
 
 **CRITICAL: Avoid repetition**
 - Review recent_scenes carefully - if a narrative beat has already been explored (e.g., examining reflection, noticing physical disconnects, specific reveals), DO NOT repeat it
@@ -770,28 +796,44 @@ Important guidelines:
 - Each scene should advance understanding or explore different aspects
 - Repeating the same revelatory moment kills engagement in long stories
 
-**ENDING THE STORY** (Evaluate after EVERY scene)
+**PLAYER-CONTROLLED PACING (READ CAREFULLY)**
 
-After generating each scene, review the story arc's "Intended ending" section and evaluate:
+The player controls how long the story runs. Your job is to ALWAYS give them the option to move toward ending, while also letting them explore indefinitely if they prefer.
 
-1. Has the player:
-   - Reached the key location from any resolution path (optimal/acceptable/tragic)?
-   - Confronted the central antagonist/guardian/obstacle described in the arc?
-   - Obtained, activated, or lost the story's MacGuffin/objective?
-   - Resolved or catastrophically failed the central conflict?
+${currentScene < 20 ? `
+SCENE ${currentScene} - EARLY STORY (scenes 1-19):
+- Focus on world-building, character development, and mystery setup
+- Do NOT offer ending-path choices yet - it's too early
+- Let the story breathe and develop naturally
+- All 3-4 choices should explore different aspects of the adventure
+` : currentScene < 40 ? `
+SCENE ${currentScene} - MID STORY (scenes 20-39):
+- Story is established, player may want to start moving toward resolution
+- REQUIRED: Exactly ONE choice must be an "ending path" choice that moves toward the story arc's intended ending
+- Mark it with 🏁 emoji and make it clearly about progressing the main plot
+- The other 2-3 choices should offer side adventures, exploration, or character moments
+- Player can ignore the ending path and explore for as long as they want
+` : `
+SCENE ${currentScene} - LATE STORY (scenes 40+):
+- Player has been exploring extensively - respect their pace but make resolution accessible
+- REQUIRED: Exactly ONE choice must be an "ending path" choice (marked with 🏁)
+- This choice should feel like "the moment of truth" - confronting the core conflict
+- Other choices can still offer exploration, but the ending path should feel increasingly significant
+- If player keeps avoiding ending paths, that's fine - they're enjoying the journey
+`}
 
-2. IF ALL CONDITIONS FOR A RESOLUTION PATH ARE MET:
-   → The story has reached its climax
-   → Generate ONE final choice that will determine the specific ending type
-   → Mark it: {"is_final_choice": true, "text": "Your final decision...", "type": "action", "emoji": "⚡"}
-   → After player selects this choice: generate a LONG conclusion (6-10 paragraphs)
-   → End with: {"story_complete": true, "ending_type": "triumph|tragedy|bittersweet|mystery"}
+**ENDING PATH CHOICE FORMAT** (for scenes 20+):
+When including the required ending-path choice, format it as:
+{"text": "[Action that advances main plot toward resolution]", "type": "action", "emoji": "🏁", "ending_path": true}
 
-3. IF OBJECTIVES ARE NOT YET MET:
-   → Continue the story normally
-   → Ensure at least ONE choice progresses toward a resolution path from the arc
-   → Players may ignore this choice and pursue other interactions for as long as they wish
-   → Never force urgency or rush the player - let the story unfold naturally`;
+**TRIGGERING THE FINALE**
+
+When the player selects an ending-path choice AND the story arc's resolution conditions are met:
+1. Generate ONE dramatic final choice: {"is_final_choice": true, "text": "...", "type": "action", "emoji": "⚡"}
+2. After they select the final choice, generate a LONG satisfying conclusion (6-10 paragraphs)
+3. End with: {"story_complete": true, "ending_type": "triumph|tragedy|bittersweet|mystery"}
+
+Remember: The player is NEVER forced to end. They can explore for 100+ scenes if they want. Your job is to make the ending path AVAILABLE, not mandatory.`;
     }
 
     async callClaudeStreaming(systemPrompt, userPrompt, cacheableContext = null, language = 'en', onChunk = null) {
@@ -1003,7 +1045,8 @@ After generating each scene, review the story arc's "Intended ending" section an
                 if (parsed.choices) {
                     console.log('🔍 PARSED CHOICES FROM CLAUDE:');
                     parsed.choices.forEach((choice, i) => {
-                        console.log(`  Choice ${i+1}: ${choice.text}`);
+                        const endingFlag = choice.ending_path ? ' [ENDING PATH]' : '';
+                        console.log(`  Choice ${i+1}: ${choice.text}${endingFlag}`);
                     });
                 }
 

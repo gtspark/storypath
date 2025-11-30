@@ -264,9 +264,19 @@ function updateChoices(choices) {
         const emoji = choice.emoji || getDefaultEmoji(choiceType);
         const displayText = transformNarrativeText(choiceText);
 
+        // Check if this is an ending path choice (SQLite returns 1/0, JSON returns true/false)
+        const isEndingPath = choice.ending_path === true || choice.ending_path === 1 || choice.is_final_choice === true;
+        if (isEndingPath) {
+            button.classList.add('ending-path');
+        }
+
+        // Use 🏁 emoji for ending path choices
+        const displayEmoji = isEndingPath ? '🏁' : emoji;
+
         button.innerHTML = `
-            <span class="choice-emoji">${emoji}</span>
+            <span class="choice-emoji">${displayEmoji}</span>
             <span>${displayText}</span>
+            ${isEndingPath ? '<span class="ending-indicator" title="This choice advances the main story toward its conclusion">→</span>' : ''}
         `;
 
         panel.appendChild(button);
@@ -637,6 +647,14 @@ function showGameCurtain(genre, maturity) {
 
 // Load story on page load
 window.addEventListener('load', () => {
+    // Restore audio button state from localStorage
+    if (audio && audio.enabled) {
+        const btn = document.getElementById('audioToggle');
+        if (btn) {
+            btn.textContent = '🔊';
+            btn.classList.add('active');
+        }
+    }
     // Check and create curtain FIRST (synchronously) before loading story
     checkCurtainReveal();
     // Then load story content
