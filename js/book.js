@@ -304,6 +304,40 @@ function renderBook() {
     });
 
     initPageFlip();
+    initFloatingEffect();
+}
+
+function initFloatingEffect() {
+    const bookEl = document.getElementById('book');
+    const wrapper = document.querySelector('.book-container');
+    
+    if (!bookEl || !wrapper) return;
+
+    // Track mouse over window for smoother continuous movement
+    document.addEventListener('mousemove', (e) => {
+        // Only active if window is wide enough (desktop)
+        if (window.innerWidth < 768) return;
+
+        const x = e.clientX / window.innerWidth;
+        const y = e.clientY / window.innerHeight;
+
+        // Calculate rotation (center is 0.5)
+        // Range: -15 to +15 degrees
+        const rotateY = -15 + (x * 30); 
+        // Range: 10 to -10 degrees (inverted Y)
+        const rotateX = 10 - (y * 20);
+
+        // Apply transform
+        // Pause animation on hover interaction handled by CSS class toggling in future?
+        // For now, override style directly
+        bookEl.style.animation = 'none';
+        bookEl.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+    });
+
+    document.addEventListener('mouseleave', () => {
+        bookEl.style.animation = 'float 6s ease-in-out infinite';
+        bookEl.style.transform = ''; // Clear inline transform to let animation take over
+    });
 }
 
 function initPageFlip() {

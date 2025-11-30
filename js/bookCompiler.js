@@ -122,7 +122,7 @@ class BookCompiler {
         onProgress(100);
         
         const layout = {
-            version: 9,  // v9: Safer margins and measurement
+            version: 10, // v10: "Artifact" 3D Style + StoryPath Theme
             storyId: storyData.id,
             title: storyData.title,
             language: storyData.language,
