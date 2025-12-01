@@ -78,100 +78,76 @@ class BookCompiler {
             const scene = scenes[i];
             const text = scene.text || '';
             const paragraphs = text.split('\n\n').filter(p => p.trim());
+            const imageUrl = scene.image_url;
             
-            // Start Scene on a Left Page
-            // If current page count is Odd (last was Right), next is Left. Perfect.
-            // If current is Even (last was Left), we need a blank/image Right page?
-            // Actually, in standard book:
-            // Cover=Right.
-            // Copyright=Left, Title=Right.
-            // Next is Page 4 (Left). So we are aligned for Left start.
+            // Ensure we start each scene spread-aligned
+            // After front matter (3 pages: cover, copyright, title), next index is 3
+            // PageFlip pairs: [1,2], [3,4], [5,6]...
+            // Index 3 = LEFT, Index 4 = RIGHT
+            // We want: [IMAGE | TEXT] spread to match visual weight
+            // Actually user wants [TEXT | IMAGE] but PageFlip shows them in array order
+            // So push order = display order from LEFT to RIGHT
             
-            if (pages.length % 2 === 0) {
-                // Currently ended on Left page? No, length is total pages.
-                // 1 page = End on Right (Cover)
-                // 2 pages = End on Left (Copyright) -> Next is Right (Title)
-                // 3 pages = End on Right (Title) -> Next is Left (Scene 1)
-                // So if length is odd, next is Left. Good.
-                // If length is even, next is Right. We need a filler?
-                // Picture books usually force spreads.
-                // Let's assume we start synced.
-            }
-
-            // --- Page 1 of Scene: Text (Left) ---
+            // --- Page 1 of Scene: IMAGE (Left) ---
             const leftPageNumber = ++pageNumber;
             
-            // Measure how much fits on the left page
+            pages.push({
+                type: 'content',
+                layout: 'spread-image',
+                pageNumber: leftPageNumber,
+                imageUrl: imageUrl,
+                sceneIndex: i
+            });
+            
+            // --- Page 2 of Scene: TEXT (Right) ---
+            const rightPageNumber = ++pageNumber;
+            
+            // Measure how much fits - use smaller area for right page to leave breathing room
             const fitResult = this.fitContentToPage(paragraphs, this.fontSettings.kids);
             
             pages.push({
                 type: 'content',
                 layout: 'spread-text',
-                pageNumber: leftPageNumber,
+                pageNumber: rightPageNumber,
                 paragraphs: fitResult.fittedParagraphs,
                 sceneIndex: i
             });
             
-            // --- Page 2 of Scene: Image (Right) ---
-            const rightPageNumber = ++pageNumber;
-            const imageUrl = scene.image_url;
-            
-            pages.push({
-                type: 'content',
-                layout: 'spread-image',
-                pageNumber: rightPageNumber,
-                imageUrl: imageUrl,
-                sceneIndex: i
-            });
-            
-            // --- Overflow Handling (Overlay Page) ---
+            // --- Overflow Handling ---
+            // If text didn't fit, continue on subsequent pages
             if (fitResult.remainingParagraphs.length > 0) {
-                // If text didn't fit, create an Overlay Page (Left)
-                // We use the SAME image but darkened as background
-                const overlayPageNumber = ++pageNumber;
-                
-                // We might need to split AGAIN if even the overlay page overflows
-                // But for simplicity/kids books, let's assume it fits or truncate safely
-                // Or loop? Let's loop.
-                
                 let remaining = fitResult.remainingParagraphs;
                 
                 while (remaining.length > 0) {
-                    const overlayFit = this.fitContentToPage(remaining, this.fontSettings.kids);
+                    const overflowFit = this.fitContentToPage(remaining, this.fontSettings.kids);
                     
+                    // Overflow text page (LEFT of next spread)
                     pages.push({
                         type: 'content',
-                        layout: 'overlay', // New type
-                        pageNumber: overlayPageNumber,
-                        imageUrl: imageUrl, // Full bleed background
-                        paragraphs: overlayFit.fittedParagraphs,
+                        layout: 'spread-text',
+                        pageNumber: ++pageNumber,
+                        paragraphs: overflowFit.fittedParagraphs,
                         sceneIndex: i
                     });
                     
-                    remaining = overlayFit.remainingParagraphs;
-                    
-                    // If we added a Left Overlay page, we need a Right page to maintain spread?
-                    // Or the Overlay page IS the spread (Left)?
-                    // Next page is Right.
-                    // If we have more scenes, next scene starts Left.
-                    // So we need a Right Filler? Or just start next scene on Right?
-                    // User said "spreads".
-                    // If we have [Overlay (Left)], the Right side is blank?
-                    // Let's make the Right side a "Detail" or repeat image or just blank.
-                    // Or... maybe we just don't enforce [Text Left] for overflow.
-                    // But for consistency, let's add a Right Filler.
-                    
+                    // Matching decorative page (RIGHT) - use same scene image with overlay effect
                     pages.push({
-                        type: 'ornament', // Filler
-                        pageNumber: ++pageNumber
+                        type: 'content',
+                        layout: 'overlay',
+                        pageNumber: ++pageNumber,
+                        imageUrl: imageUrl,
+                        paragraphs: [], // No text, just visual
+                        sceneIndex: i
                     });
+                    
+                    remaining = overflowFit.remainingParagraphs;
                 }
             }
             
             onProgress(10 + Math.floor((i / scenes.length) * 80));
         }
         
-        return this.finalizeLayout(storyData, pages, 11);
+        return this.finalizeLayout(storyData, pages, 12);
     }
 
     /**
@@ -296,7 +272,7 @@ class BookCompiler {
         
         flushPage(); // Flush last page
         
-        return this.finalizeLayout(storyData, pages, 11);
+        return this.finalizeLayout(storyData, pages, 12);
     }
 
     finalizeLayout(storyData, pages, version) {
@@ -424,12 +400,13 @@ class BookCompiler {
 
     measureSingleParagraph(text, settings) {
         const p = document.createElement('p');
+        const isKids = this.maturityLevel === 'kids';
         p.style.cssText = `
             margin: 0 0 1em 0;
             font-family: ${settings.fontFamily};
             font-size: ${settings.size}px;
             line-height: ${settings.lineHeight};
-            text-align: ${settings.maturityLevel === 'kids' ? 'left' : 'justify'};
+            text-align: ${isKids ? 'left' : 'justify'};
             text-indent: ${settings.indent};
             width: 100%;
         `;
@@ -438,12 +415,15 @@ class BookCompiler {
         this.measureContainer.appendChild(p);
         const height = p.offsetHeight;
         this.measureContainer.removeChild(p);
-        return height;
+        
+        // Add safety buffer (10%) to prevent edge-case overflow
+        return Math.ceil(height * 1.1);
     }
 
     createMeasureContainer() {
         // Create hidden container with exact width of text area
-        const width = this.pageWidth - this.PADDING.left - this.PADDING.right;
+        // Subtract extra buffer to ensure text fits with rendering differences
+        const width = this.pageWidth - this.PADDING.left - this.PADDING.right - 20; // 20px safety
         
         this.measureContainer = document.createElement('div');
         this.measureContainer.style.cssText = `

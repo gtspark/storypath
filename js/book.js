@@ -219,17 +219,29 @@ function renderBook() {
                         <div class="page-number">${page.pageNumber}</div>
                     `;
                 } else if (page.layout === 'overlay') {
-                    // Kids Mode: Overflow Overlay Page
+                    // Kids Mode: Overlay Page (either text overflow or decorative)
                     pageEl.className = 'page overlay-page';
-                    pageEl.innerHTML = `
-                        <img class="full-page-image overlay-bg" src="${page.imageUrl}" alt="Scene background" loading="lazy">
-                        <div class="overlay-content">
-                            <div class="scene-text overlay-text" style="font-size: 24px;">
-                                ${page.paragraphs.map(p => `<p>${p.trim()}</p>`).join('')}
+                    
+                    const hasText = page.paragraphs && page.paragraphs.length > 0;
+                    
+                    if (hasText) {
+                        // Overflow text on darkened image
+                        pageEl.innerHTML = `
+                            <img class="full-page-image overlay-bg" src="${page.imageUrl}" alt="Scene background" loading="lazy">
+                            <div class="overlay-content">
+                                <div class="scene-text overlay-text" style="font-size: 24px;">
+                                    ${page.paragraphs.map(p => `<p>${p.trim()}</p>`).join('')}
+                                </div>
                             </div>
-                        </div>
-                        <div class="page-number" style="color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">${page.pageNumber}</div>
-                    `;
+                            <div class="page-number" style="color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">${page.pageNumber}</div>
+                        `;
+                    } else {
+                        // Decorative full-bleed image
+                        pageEl.innerHTML = `
+                            <img class="full-page-image" src="${page.imageUrl}" alt="Scene illustration" loading="lazy">
+                            <div class="page-number" style="color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">${page.pageNumber}</div>
+                        `;
+                    }
                 } else if (page.layout === 'continuous') {
                     // Adult Mode: Continuous Flow
                     pageEl.className = `page continuous-page ${isJapanese ? 'ja-vertical' : ''}`;
