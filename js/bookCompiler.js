@@ -1,11 +1,9 @@
 /**
- * Book Compiler - Picture Book Edition
+ * Book Compiler 2.0
  * 
- * Creates a picture book layout where:
- * - Each scene is a SPREAD (2 facing pages): text on left, image on right
- * - Text fills the page with appropriate font sizing
- * - No blank or nearly-empty pages
- * - Kids mode uses larger, friendlier fonts
+ * Generates book layouts with two distinct modes:
+ * 1. Adult Mode: Continuous flow, fixed serif font, inline images (novel style).
+ * 2. Kids Mode: Fixed spreads, large sans-serif font, overlay pages for overflow.
  */
 
 class BookCompiler {
@@ -15,23 +13,22 @@ class BookCompiler {
         this.pageHeight = 620;
         
         // Layout constants
-        this.PADDING = { top: 40, right: 40, bottom: 50, left: 40 };
+        // Increased padding for better reading experience
+        this.PADDING = { top: 60, right: 50, bottom: 60, left: 50 };
         
-        // Font settings by maturity level
+        // Fixed Font Settings
         this.fontSettings = {
             kids: {
-                baseSize: 20,      // 1.25rem
-                minSize: 16,       // Won't go smaller than this
-                maxSize: 28,       // Won't go larger than this
-                lineHeight: 1.9,
-                fontFamily: "'Quicksand', sans-serif"
+                size: 24,
+                lineHeight: 1.8,
+                fontFamily: "'Quicksand', sans-serif",
+                indent: '0'
             },
             adults: {
-                baseSize: 17,      // 1.05rem
-                minSize: 14,
-                maxSize: 22,
-                lineHeight: 1.75,
-                fontFamily: "'Cormorant Garamond', Georgia, serif"
+                size: 17,
+                lineHeight: 1.6,
+                fontFamily: "'Cormorant Garamond', Georgia, serif",
+                indent: '1.5em'
             }
         };
         
@@ -40,89 +37,279 @@ class BookCompiler {
     }
 
     /**
-     * Compile a complete story into a picture book layout
+     * Main entry point
      */
     async compile(storyData, scenes, onProgress = () => {}) {
-        console.log('📚 Starting picture book compilation...');
-        
+        console.log('📚 Starting compilation 2.0...');
         this.maturityLevel = storyData.maturity_level || 'kids';
         this.createMeasureContainer();
         
+        let layout;
+        
+        if (this.maturityLevel === 'kids') {
+            layout = await this.compileKids(storyData, scenes, onProgress);
+        } else {
+            layout = await this.compileAdult(storyData, scenes, onProgress);
+        }
+        
+        this.removeMeasureContainer();
+        return layout;
+    }
+
+    /**
+     * KIDS MODE: Spread-based layout
+     * [Left: Text] | [Right: Image]
+     * Overflow -> Overlay Page
+     */
+    async compileKids(storyData, scenes, onProgress) {
         const pages = [];
         let pageNumber = 0;
         
-        // 1. Front Cover (Right page)
+        // 1. Front Cover (Right)
         pages.push({ type: 'cover', side: 'front' });
         
-        // 2. Inner Left (Copyright/Dedication) - This pushes Title to the Right
-        pages.push({ 
-            type: 'copyright', 
-            pageNumber: ++pageNumber 
-        });
-
-        // 3. Title Page (Right page)
+        // 2. Copyright (Left)
+        pages.push({ type: 'copyright', pageNumber: ++pageNumber });
+        
+        // 3. Title (Right)
         pages.push({ type: 'title', pageNumber: ++pageNumber });
         
-        onProgress(5);
-        
-        // 4. Process scenes (Text on Left, Image on Right)
-        for (let sceneIndex = 0; sceneIndex < scenes.length; sceneIndex++) {
-            const scene = scenes[sceneIndex];
-            const narrativeText = scene.text || '';
-            const hasImage = !!scene.image_url;
+        for (let i = 0; i < scenes.length; i++) {
+            const scene = scenes[i];
+            const text = scene.text || '';
+            const paragraphs = text.split('\n\n').filter(p => p.trim());
             
-            if (!narrativeText.trim()) continue;
+            // Start Scene on a Left Page
+            // If current page count is Odd (last was Right), next is Left. Perfect.
+            // If current is Even (last was Left), we need a blank/image Right page?
+            // Actually, in standard book:
+            // Cover=Right.
+            // Copyright=Left, Title=Right.
+            // Next is Page 4 (Left). So we are aligned for Left start.
             
-            // Calculate optimal font size to fill the text page
-            const paragraphs = narrativeText.split('\n\n').filter(p => p.trim());
-            const optimalFontSize = this.calculateOptimalFontSize(paragraphs);
+            if (pages.length % 2 === 0) {
+                // Currently ended on Left page? No, length is total pages.
+                // 1 page = End on Right (Cover)
+                // 2 pages = End on Left (Copyright) -> Next is Right (Title)
+                // 3 pages = End on Right (Title) -> Next is Left (Scene 1)
+                // So if length is odd, next is Left. Good.
+                // If length is even, next is Right. We need a filler?
+                // Picture books usually force spreads.
+                // Let's assume we start synced.
+            }
+
+            // --- Page 1 of Scene: Text (Left) ---
+            const leftPageNumber = ++pageNumber;
             
-            // LEFT PAGE: Text
+            // Measure how much fits on the left page
+            const fitResult = this.fitContentToPage(paragraphs, this.fontSettings.kids);
+            
             pages.push({
                 type: 'content',
-                pageNumber: ++pageNumber,
                 layout: 'spread-text',
-                paragraphs: paragraphs,
-                sceneIndex,
-                fontSize: optimalFontSize,
-                isFirstPageOfScene: true
+                pageNumber: leftPageNumber,
+                paragraphs: fitResult.fittedParagraphs,
+                sceneIndex: i
             });
             
-            // RIGHT PAGE: Image (or decorative page if no image)
-            if (hasImage) {
-                pages.push({
-                    type: 'content',
-                    pageNumber: ++pageNumber,
-                    layout: 'spread-image',
-                    imageUrl: scene.image_url,
-                    sceneIndex
-                });
-            } else {
-                // No image - could add a decorative divider page or skip
-                // For now, we'll add a simple ornamental page
-                pages.push({
-                    type: 'ornament',
-                    pageNumber: ++pageNumber,
-                    sceneIndex
-                });
+            // --- Page 2 of Scene: Image (Right) ---
+            const rightPageNumber = ++pageNumber;
+            const imageUrl = scene.image_url;
+            
+            pages.push({
+                type: 'content',
+                layout: 'spread-image',
+                pageNumber: rightPageNumber,
+                imageUrl: imageUrl,
+                sceneIndex: i
+            });
+            
+            // --- Overflow Handling (Overlay Page) ---
+            if (fitResult.remainingParagraphs.length > 0) {
+                // If text didn't fit, create an Overlay Page (Left)
+                // We use the SAME image but darkened as background
+                const overlayPageNumber = ++pageNumber;
+                
+                // We might need to split AGAIN if even the overlay page overflows
+                // But for simplicity/kids books, let's assume it fits or truncate safely
+                // Or loop? Let's loop.
+                
+                let remaining = fitResult.remainingParagraphs;
+                
+                while (remaining.length > 0) {
+                    const overlayFit = this.fitContentToPage(remaining, this.fontSettings.kids);
+                    
+                    pages.push({
+                        type: 'content',
+                        layout: 'overlay', // New type
+                        pageNumber: overlayPageNumber,
+                        imageUrl: imageUrl, // Full bleed background
+                        paragraphs: overlayFit.fittedParagraphs,
+                        sceneIndex: i
+                    });
+                    
+                    remaining = overlayFit.remainingParagraphs;
+                    
+                    // If we added a Left Overlay page, we need a Right page to maintain spread?
+                    // Or the Overlay page IS the spread (Left)?
+                    // Next page is Right.
+                    // If we have more scenes, next scene starts Left.
+                    // So we need a Right Filler? Or just start next scene on Right?
+                    // User said "spreads".
+                    // If we have [Overlay (Left)], the Right side is blank?
+                    // Let's make the Right side a "Detail" or repeat image or just blank.
+                    // Or... maybe we just don't enforce [Text Left] for overflow.
+                    // But for consistency, let's add a Right Filler.
+                    
+                    pages.push({
+                        type: 'ornament', // Filler
+                        pageNumber: ++pageNumber
+                    });
+                }
             }
             
-            // Progress update
-            const progress = 5 + Math.floor(((sceneIndex + 1) / scenes.length) * 90);
-            onProgress(progress);
+            onProgress(10 + Math.floor((i / scenes.length) * 80));
         }
         
-        // 4. Back Cover
+        return this.finalizeLayout(storyData, pages, 11);
+    }
+
+    /**
+     * ADULT MODE: Continuous Flow
+     * Text flows page to page. Images are inserted inline.
+     */
+    async compileAdult(storyData, scenes, onProgress) {
+        const pages = [];
+        let pageNumber = 0;
+        
+        // 1. Cover (Right)
+        pages.push({ type: 'cover', side: 'front' });
+        
+        // 2. Copyright (Left)
+        pages.push({ type: 'copyright', pageNumber: ++pageNumber });
+        
+        // 3. Title (Right)
+        pages.push({ type: 'title', pageNumber: ++pageNumber });
+        
+        // Build continuous stream of content
+        // Array of { type: 'text'|'image', content: ... }
+        const stream = [];
+        
+        for (let i = 0; i < scenes.length; i++) {
+            const scene = scenes[i];
+            
+            // Add paragraphs
+            const paragraphs = (scene.text || '').split('\n\n').filter(p => p.trim());
+            paragraphs.forEach(p => stream.push({ type: 'text', content: p }));
+            
+            // Add inline image (interspersed)
+            if (scene.image_url) {
+                stream.push({ type: 'image', url: scene.image_url });
+            }
+            
+            // Add divider if not last
+            if (i < scenes.length - 1) {
+                stream.push({ type: 'divider' });
+            }
+        }
+        
+        // Flow content into pages
+        let currentContent = [];
+        let currentHeight = 0;
+        const maxHeight = this.pageHeight - this.PADDING.top - this.PADDING.bottom;
+        const settings = this.fontSettings.adults;
+        
+        // Helper to flush current page
+        const flushPage = () => {
+            if (currentContent.length > 0) {
+                pages.push({
+                    type: 'content',
+                    layout: 'continuous', // New generic layout
+                    pageNumber: ++pageNumber,
+                    items: [...currentContent] // Copy
+                });
+                currentContent = [];
+                currentHeight = 0;
+            }
+        };
+        
+        for (const item of stream) {
+            if (item.type === 'image') {
+                // Fixed height for inline images (e.g. 250px)
+                const imgHeight = 250; 
+                
+                if (currentHeight + imgHeight > maxHeight) {
+                    flushPage();
+                }
+                
+                currentContent.push(item);
+                currentHeight += imgHeight + 20; // + gap
+                
+            } else if (item.type === 'divider') {
+                const divHeight = 40;
+                if (currentHeight + divHeight > maxHeight) {
+                    flushPage();
+                } else {
+                    currentContent.push(item);
+                    currentHeight += divHeight;
+                }
+                
+            } else if (item.type === 'text') {
+                // Measure text
+                // If it fits, add. If not, SPLIT.
+                const remainingSpace = maxHeight - currentHeight;
+                
+                // If space is very small (< 2 lines), flush first
+                if (remainingSpace < 40) {
+                    flushPage();
+                }
+                
+                const fit = this.fitParagraphToHeight(item.content, settings, maxHeight - currentHeight);
+                
+                if (fit.fits) {
+                    currentContent.push({ type: 'text', content: item.content });
+                    currentHeight += fit.height;
+                } else {
+                    // Split!
+                    if (fit.part1) {
+                        currentContent.push({ type: 'text', content: fit.part1 });
+                    }
+                    flushPage();
+                    
+                    // Handle remainder (might need multiple pages)
+                    let remainder = fit.part2;
+                    while (remainder) {
+                        const nextFit = this.fitParagraphToHeight(remainder, settings, maxHeight);
+                        if (nextFit.fits) {
+                            currentContent.push({ type: 'text', content: remainder });
+                            currentHeight += nextFit.height;
+                            remainder = null;
+                        } else {
+                            if (nextFit.part1) currentContent.push({ type: 'text', content: nextFit.part1 });
+                            flushPage();
+                            remainder = nextFit.part2;
+                        }
+                    }
+                }
+            }
+        }
+        
+        flushPage(); // Flush last page
+        
+        return this.finalizeLayout(storyData, pages, 11);
+    }
+
+    finalizeLayout(storyData, pages, version) {
+        // Back Cover
         pages.push({ 
             type: 'back', 
             endingType: storyData.ending_type || 'default'
         });
         
-        this.removeMeasureContainer();
-        onProgress(100);
+        console.log(`📚 Compiled ${pages.length} pages (v${version})`);
         
-        const layout = {
-            version: 10, // v10: "Artifact" 3D Style + StoryPath Theme
+        return {
+            version: version,
             storyId: storyData.id,
             title: storyData.title,
             language: storyData.language,
@@ -130,117 +317,150 @@ class BookCompiler {
             maturityLevel: this.maturityLevel,
             coverUrl: storyData.book_cover_url,
             endingType: storyData.ending_type,
-            totalPages: pageNumber + 1,
+            totalPages: pages.length,
             pages,
             compiledAt: new Date().toISOString()
         };
-        
-        console.log(`📚 Picture book compiled: ${layout.totalPages} pages (${scenes.length} spreads)`);
-        return layout;
     }
 
+    // --- Measurement Helpers ---
+
     /**
-     * Calculate optimal font size to fill the text page nicely
-     * Aims for 60-85% page fill (reduced from 95% to avoid overflow/crowding)
+     * Fits a list of paragraphs to a page
+     * Returns { fittedParagraphs, remainingParagraphs }
      */
-    calculateOptimalFontSize(paragraphs) {
-        const settings = this.fontSettings[this.maturityLevel];
-        // Use reduced height for calculation to ensure bottom margin safety
-        const availableHeight = (this.pageHeight - this.PADDING.top - this.PADDING.bottom) * 0.9;
-        const targetFillMin = 0.50;
-        const targetFillMax = 0.85;
+    fitContentToPage(paragraphs, settings) {
+        const fitted = [];
+        const remaining = [...paragraphs]; // Copy
+        const maxHeight = this.pageHeight - this.PADDING.top - this.PADDING.bottom;
+        let currentHeight = 0;
         
-        // Binary search for optimal font size
-        let minSize = settings.minSize;
-        let maxSize = settings.maxSize;
-        let optimalSize = settings.baseSize;
-        
-        for (let i = 0; i < 8; i++) { // 8 iterations is enough precision
-            const testSize = (minSize + maxSize) / 2;
-            const height = this.measureTextHeight(paragraphs, testSize);
-            const fillRatio = height / availableHeight;
+        while (remaining.length > 0) {
+            const p = remaining[0];
+            const pHeight = this.measureSingleParagraph(p, settings);
             
-            if (fillRatio < targetFillMin) {
-                // Text too small, increase size
-                minSize = testSize;
-            } else if (fillRatio > targetFillMax) {
-                // Text too big, decrease size
-                maxSize = testSize;
+            if (currentHeight + pHeight <= maxHeight) {
+                // Whole paragraph fits
+                fitted.push(p);
+                currentHeight += pHeight;
+                remaining.shift();
             } else {
-                // Good fit!
-                optimalSize = testSize;
+                // Overflow!
+                // Try to split the paragraph? 
+                // For Kids mode, maybe just push whole paragraph to next page to keep it clean?
+                // User said "not a word vomit". Splitting might be better for density.
+                // Let's split if it's long (> 200 chars), otherwise push.
+                
+                if (p.length > 200 && currentHeight < maxHeight * 0.7) {
+                    // Try to split
+                    const fit = this.fitParagraphToHeight(p, settings, maxHeight - currentHeight);
+                    if (fit.part1) {
+                        fitted.push(fit.part1);
+                        remaining[0] = fit.part2; // Update remainder
+                    }
+                }
+                
+                // Stop filling this page
                 break;
             }
-            
-            optimalSize = testSize;
         }
         
-        // Clamp to valid range
-        return Math.max(settings.minSize, Math.min(settings.maxSize, Math.round(optimalSize)));
+        return { fittedParagraphs: fitted, remainingParagraphs: remaining };
     }
 
     /**
-     * Measure total height of paragraphs at a given font size
+     * Binary search to find how much of a paragraph fits in given height
      */
-    measureTextHeight(paragraphs, fontSize) {
-        const settings = this.fontSettings[this.maturityLevel];
-        let totalHeight = 0;
+    fitParagraphToHeight(text, settings, availableHeight) {
+        // First check if whole thing fits
+        const totalHeight = this.measureSingleParagraph(text, settings);
+        if (totalHeight <= availableHeight) {
+            return { fits: true, height: totalHeight };
+        }
         
-        // Update container width to match new padding + safety buffer
-        // Real padding is 50px left/right = 100px total
-        // Safety buffer = 10px
-        const measureWidth = this.pageWidth - 110; 
-        this.measureContainer.style.width = `${measureWidth}px`;
+        // Binary search for split index
+        let start = 0;
+        let end = text.length;
+        let bestIndex = 0;
+        let bestHeight = 0;
         
-        paragraphs.forEach((para, idx) => {
-            const p = document.createElement('p');
-            p.style.cssText = `
-                margin: 0 0 ${idx < paragraphs.length - 1 ? '1em' : '0'} 0;
-                font-family: ${settings.fontFamily};
-                font-size: ${fontSize}px;
-                line-height: ${settings.lineHeight};
-                text-align: left;
-            `;
-            p.textContent = para;
+        // Minimal chunk to prevent widows
+        if (availableHeight < 30) { // Less than 1 line approx
+             return { fits: false, part1: '', part2: text };
+        }
+
+        // Optimization: Estimate based on ratio
+        // let guess = Math.floor((availableHeight / totalHeight) * text.length);
+        
+        while (start <= end) {
+            const mid = Math.floor((start + end) / 2);
+            // Try to break at a space near mid
+            let splitPoint = text.lastIndexOf(' ', mid);
+            if (splitPoint === -1 || splitPoint < start) splitPoint = mid; // Fallback
             
-            this.measureContainer.style.fontSize = `${fontSize}px`;
-            this.measureContainer.appendChild(p);
-            totalHeight += p.offsetHeight;
-            this.measureContainer.removeChild(p);
-        });
+            const chunk = text.substring(0, splitPoint);
+            const h = this.measureSingleParagraph(chunk, settings);
+            
+            if (h <= availableHeight) {
+                bestIndex = splitPoint;
+                bestHeight = h;
+                start = mid + 1; // Try more
+            } else {
+                end = mid - 1; // Too big
+            }
+        }
         
-        return totalHeight;
+        if (bestIndex === 0) {
+             return { fits: false, part1: '', part2: text };
+        }
+        
+        return {
+            fits: false,
+            part1: text.substring(0, bestIndex),
+            part2: text.substring(bestIndex).trim(),
+            height: bestHeight
+        };
     }
 
-    /**
-     * Create hidden container for DOM measurements
-     */
+    measureSingleParagraph(text, settings) {
+        const p = document.createElement('p');
+        p.style.cssText = `
+            margin: 0 0 1em 0;
+            font-family: ${settings.fontFamily};
+            font-size: ${settings.size}px;
+            line-height: ${settings.lineHeight};
+            text-align: ${settings.maturityLevel === 'kids' ? 'left' : 'justify'};
+            text-indent: ${settings.indent};
+            width: 100%;
+        `;
+        p.textContent = text;
+        
+        this.measureContainer.appendChild(p);
+        const height = p.offsetHeight;
+        this.measureContainer.removeChild(p);
+        return height;
+    }
+
     createMeasureContainer() {
-        const settings = this.fontSettings[this.maturityLevel];
+        // Create hidden container with exact width of text area
+        const width = this.pageWidth - this.PADDING.left - this.PADDING.right;
+        
         this.measureContainer = document.createElement('div');
         this.measureContainer.style.cssText = `
             position: absolute;
             top: -9999px;
             left: -9999px;
-            width: ${this.pageWidth - this.PADDING.left - this.PADDING.right}px;
+            width: ${width}px;
             visibility: hidden;
-            font-family: ${settings.fontFamily};
-            font-size: ${settings.baseSize}px;
-            line-height: ${settings.lineHeight};
         `;
         document.body.appendChild(this.measureContainer);
     }
 
-    /**
-     * Remove measurement container
-     */
     removeMeasureContainer() {
         if (this.measureContainer && this.measureContainer.parentNode) {
             this.measureContainer.parentNode.removeChild(this.measureContainer);
         }
-        this.measureContainer = null;
     }
 }
 
-// Export for use
 window.BookCompiler = BookCompiler;

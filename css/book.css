@@ -877,3 +877,99 @@ body.dark-theme .page {
         padding: 16px 20px;
     }
 }
+
+/* ===== NEW: Overlay Page (Kids Overflow) ===== */
+.page.overlay-page {
+    position: relative;
+    overflow: hidden;
+}
+
+.page.overlay-page .overlay-bg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    filter: brightness(0.4) blur(1px); /* Darken for readability */
+    z-index: 0;
+}
+
+.page.overlay-page .overlay-content {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 50px;
+}
+
+.page.overlay-page .overlay-text {
+    background: rgba(253, 251, 247, 0.92);
+    padding: 30px 35px;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    max-height: 80%;
+    overflow: hidden;
+}
+
+.page.overlay-page .overlay-text p {
+    margin: 0 0 1em 0;
+    color: var(--text-primary);
+    font-family: 'Quicksand', sans-serif;
+    line-height: 1.8;
+}
+
+/* ===== NEW: Continuous Page (Adult Flow) ===== */
+.page.continuous-page .page-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.page.continuous-page .scene-text-container {
+    flex: 1;
+    padding: 50px;
+    overflow: hidden;
+}
+
+.page.continuous-page .scene-text {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.6;
+    text-align: justify;
+    color: var(--text-primary);
+}
+
+.page.continuous-page .scene-text p {
+    margin: 0 0 1em 0;
+    text-indent: 1.5em;
+}
+
+.page.continuous-page .scene-text p:first-child {
+    text-indent: 0;
+}
+
+/* Inline Images in Continuous Flow */
+.inline-image-container {
+    width: 100%;
+    margin: 1.5em 0;
+    text-align: center;
+}
+
+.inline-image {
+    max-width: 100%;
+    max-height: 220px;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+/* Section Dividers */
+.text-divider {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    letter-spacing: 0.5em;
+    margin: 1.5em 0;
+    opacity: 0.6;
+}

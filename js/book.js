@@ -193,76 +193,72 @@ function renderBook() {
 
             case 'content':
                 if (page.layout === 'spread-text') {
-                    // Text page of a spread
+                    // Kids Mode: Text Page
                     pageEl.className = `page spread-text ${isJapanese ? 'ja-vertical' : ''}`;
+                    const fontSize = bookLayout.maturityLevel === 'kids' ? 24 : 17;
                     
-                    const fontSize = page.fontSize || (isKids ? 20 : 17);
                     const paragraphsHtml = page.paragraphs
                         .map(p => `<p>${p.trim()}</p>`)
                         .join('');
                     
-                    // Determine if we need ornaments (short text)
-                    const totalLength = page.paragraphs.join('').length;
-                    const isShort = totalLength < 400; // Arbitrary threshold
-                    const showOrnaments = isShort && !isKids; // Kids don't need fancy dividers
-                    
-                    const ornamentTop = showOrnaments ? '<div class="text-ornament" style="display:block; margin-bottom: 2rem;">❦</div>' : '';
-                    const ornamentBottom = showOrnaments ? '<div class="text-ornament" style="display:block; margin-top: 2rem;">❧</div>' : '';
-
                     pageEl.innerHTML = `
                         <div class="page-content">
                             <div class="scene-text-container">
-                                ${ornamentTop}
                                 <div class="scene-text" style="font-size: ${fontSize}px;" data-scene="${page.sceneIndex}">
                                     ${paragraphsHtml}
                                 </div>
-                                ${ornamentBottom}
                             </div>
                             <div class="page-number">${page.pageNumber}</div>
                         </div>
                     `;
                 } else if (page.layout === 'spread-image') {
-                    // Image page of a spread (full bleed)
+                    // Kids Mode: Image Page
                     pageEl.className = 'page spread-image';
                     pageEl.innerHTML = `
                         <img class="full-page-image" src="${page.imageUrl}" alt="Scene illustration" loading="lazy">
                         <div class="page-number">${page.pageNumber}</div>
                     `;
-                } else {
-                    // Legacy format support
-                    const isContinuation = page.isContinuation;
-                    pageEl.className = `page ${isJapanese ? 'ja-vertical' : ''} ${!page.hasImage ? 'page-text-only' : ''} ${isContinuation ? 'continuation' : ''}`;
-                    
-                    const paragraphsHtml = page.paragraphs
-                        .map(p => `<p>${p.trim()}</p>`)
-                        .join('');
-                    
-                    if (page.hasImage) {
-                        pageEl.innerHTML = `
-                            <div class="page-content">
-                                <div class="scene-image-container position-${page.imagePosition}">
-                                    <img src="${page.imageUrl}" alt="Scene illustration" loading="lazy">
-                                </div>
-                                <div class="scene-text-container with-image-${page.imagePosition}">
-                                    <div class="scene-text" data-scene="${page.sceneIndex}">
-                                        ${paragraphsHtml}
-                                    </div>
-                                </div>
-                                <div class="page-number">${page.pageNumber}</div>
+                } else if (page.layout === 'overlay') {
+                    // Kids Mode: Overflow Overlay Page
+                    pageEl.className = 'page overlay-page';
+                    pageEl.innerHTML = `
+                        <img class="full-page-image overlay-bg" src="${page.imageUrl}" alt="Scene background" loading="lazy">
+                        <div class="overlay-content">
+                            <div class="scene-text overlay-text" style="font-size: 24px;">
+                                ${page.paragraphs.map(p => `<p>${p.trim()}</p>`).join('')}
                             </div>
-                        `;
-                    } else {
-                        pageEl.innerHTML = `
-                            <div class="page-content">
-                                <div class="scene-text-container">
-                                    <div class="scene-text ${isContinuation ? 'continuation' : ''}" data-scene="${page.sceneIndex}">
-                                        ${paragraphsHtml}
-                                    </div>
+                        </div>
+                        <div class="page-number" style="color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">${page.pageNumber}</div>
+                    `;
+                } else if (page.layout === 'continuous') {
+                    // Adult Mode: Continuous Flow
+                    pageEl.className = `page continuous-page ${isJapanese ? 'ja-vertical' : ''}`;
+                    
+                    let contentHtml = '';
+                    page.items.forEach(item => {
+                        if (item.type === 'text') {
+                            contentHtml += `<p>${item.content}</p>`;
+                        } else if (item.type === 'image') {
+                            contentHtml += `
+                                <div class="inline-image-container">
+                                    <img src="${item.url}" class="inline-image" loading="lazy" alt="Scene illustration">
                                 </div>
-                                <div class="page-number">${page.pageNumber}</div>
+                            `;
+                        } else if (item.type === 'divider') {
+                            contentHtml += `<div class="text-divider">* * *</div>`;
+                        }
+                    });
+                    
+                    pageEl.innerHTML = `
+                        <div class="page-content">
+                            <div class="scene-text-container">
+                                <div class="scene-text" style="font-size: 17px;">
+                                    ${contentHtml}
+                                </div>
                             </div>
-                        `;
-                    }
+                            <div class="page-number">${page.pageNumber}</div>
+                        </div>
+                    `;
                 }
                 break;
                 
