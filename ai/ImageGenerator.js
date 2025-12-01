@@ -2,6 +2,8 @@ const Replicate = require('replicate');
 const fs = require('fs').promises;
 const path = require('path');
 const fetch = require('node-fetch');
+const sharp = require('sharp');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 class ImageGenerator {
     constructor(config) {
@@ -9,6 +11,12 @@ class ImageGenerator {
         this.replicate = new Replicate({ auth: this.apiKey });
         this.timeout = config.timeout || 30000;
         this.outputDir = config.outputDir || '/var/www/html/storypath/images/generated';
+
+        // Gemini for outpainting
+        this.geminiApiKey = process.env.GEMINI_API_KEY;
+        if (this.geminiApiKey) {
+            this.genAI = new GoogleGenerativeAI(this.geminiApiKey);
+        }
     }
 
     async generateSceneImage(prompt, storyId, sceneNumber) {
@@ -55,7 +63,12 @@ class ImageGenerator {
             const duration = ((Date.now() - startTime) / 1000).toFixed(2);
             console.log(`✅ [FLUX] Image saved in ${duration}s: ${filepath}`);
 
-            // Return URL path
+            // Fire async outpainting for book view (don't await)
+            this.outpaintForBook(filepath, prompt, storyId, sceneNumber)
+                .then(() => console.log(`✅ [GEMINI] Portrait version ready for scene ${sceneNumber}`))
+                .catch(err => console.log(`⚠️ [GEMINI] Outpaint failed for scene ${sceneNumber}: ${err.message}`));
+
+            // Return URL path immediately
             return `/storypath/images/generated/${storyId}/${filename}`;
 
         } catch (error) {
@@ -197,6 +210,98 @@ class ImageGenerator {
     getPlaceholderImage() {
         // Return path to a placeholder/loading image
         return '/storypath/images/placeholder-scene.png';
+    }
+
+    /**
+     * Outpaint a 16:9 landscape image to 2:3 portrait for book view
+     * Uses Gemini (Nano Banana) for reliable outpainting
+     */
+    async outpaintForBook(inputPath, prompt, storyId, sceneNumber) {
+        if (!this.genAI) {
+            throw new Error('Gemini API not configured');
+        }
+
+        const fsSync = require('fs');
+        const startTime = Date.now();
+
+        // Read original image
+        const metadata = await sharp(inputPath).metadata();
+        const originalWidth = metadata.width;
+        const originalHeight = metadata.height;
+
+        // Calculate target portrait dimensions (2:3 ratio)
+        const targetHeight = Math.round(originalWidth * 1.5);
+
+        // Skip if already portrait
+        if (originalHeight >= targetHeight) {
+            console.log(`⏭️ [GEMINI] Scene ${sceneNumber} already portrait, skipping`);
+            return;
+        }
+
+        const paddingTop = Math.floor((targetHeight - originalHeight) / 2);
+        const paddingBottom = targetHeight - originalHeight - paddingTop;
+
+        console.log(`🖼️ [GEMINI] Outpainting scene ${sceneNumber}: ${originalWidth}x${originalHeight} → ${originalWidth}x${targetHeight}`);
+
+        // Create extended canvas with gray padding (shows Gemini where to fill)
+        const extendedImage = await sharp(inputPath)
+            .extend({
+                top: paddingTop,
+                bottom: paddingBottom,
+                left: 0,
+                right: 0,
+                background: { r: 200, g: 200, b: 200, alpha: 1 }
+            })
+            .png()
+            .toBuffer();
+
+        // Call Gemini for image editing
+        const model = this.genAI.getGenerativeModel({
+            model: 'gemini-2.0-flash-exp',
+            generationConfig: {
+                responseModalities: ['image', 'text']
+            }
+        });
+
+        const editPrompt = `Edit this image: The gray areas at the top and bottom need to be filled in naturally.
+
+- TOP gray area: Fill with sky, clouds, atmospheric continuation matching the scene
+- BOTTOM gray area: Fill with ground, grass, flowers, path continuation matching the scene
+
+The CENTER of the image should remain UNCHANGED.
+Create ONE seamless vertical landscape. Match the existing art style perfectly.
+Scene context: ${prompt}`;
+
+        const result = await model.generateContent([
+            editPrompt,
+            {
+                inlineData: {
+                    mimeType: 'image/png',
+                    data: extendedImage.toString('base64')
+                }
+            }
+        ]);
+
+        // Extract image from response
+        if (result.response.candidates && result.response.candidates[0]) {
+            for (const part of result.response.candidates[0].content.parts) {
+                if (part.inlineData) {
+                    const imageData = Buffer.from(part.inlineData.data, 'base64');
+
+                    // Save as portrait version
+                    const storyDir = path.join(this.outputDir, storyId);
+                    const portraitPath = path.join(storyDir, `scene-${sceneNumber}-portrait.png`);
+
+                    await sharp(imageData).png().toFile(portraitPath);
+
+                    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+                    console.log(`✅ [GEMINI] Saved portrait in ${duration}s: ${portraitPath}`);
+                    return;
+                }
+            }
+        }
+
+        throw new Error('No image in Gemini response');
     }
 }
 

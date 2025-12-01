@@ -448,16 +448,30 @@ app.get('/api/story/:id/complete', async (req, res) => {
             [id]
         );
 
-        // Build pages
+        // Build pages - check for portrait versions of images
         const pages = [];
         for (const scene of scenes) {
             // Narrative
             if (scene.narrative_text) {
+                // Check if portrait version exists for book view
+                let bookImageUrl = scene.image_url;
+                if (scene.image_url && scene.image_url.includes('/scene-')) {
+                    const portraitUrl = scene.image_url.replace(/\/scene-(\d+)\.png$/, '/scene-$1-portrait.png');
+                    const portraitPath = '/var/www/html' + portraitUrl;
+                    try {
+                        if (require('fs').existsSync(portraitPath)) {
+                            bookImageUrl = portraitUrl;
+                        }
+                    } catch (e) {
+                        // Keep original
+                    }
+                }
+
                 pages.push({
                     type: 'narrative',
                     scene_number: scene.scene_number,
                     text: scene.narrative_text,
-                    image_url: scene.image_url,
+                    image_url: bookImageUrl,
                     image_prompt: scene.image_prompt
                 });
             }

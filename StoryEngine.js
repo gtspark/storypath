@@ -323,12 +323,16 @@ Generate the next scene in JSON format:
 9. Make the player feel like their choices shape the adventure!
 
 # Image Prompt Guidelines
-- Focus ONLY on ENVIRONMENT, SETTING, and ATMOSPHERE
+- Focus on the SPECIFIC VISUAL MOMENT in this scene, not the general location
+- Find the most evocative detail from the narrative: a glowing object, a shadow, light through leaves, a mysterious symbol, an item discovered
+- VARY the composition: sometimes close-up details, sometimes wide vistas, sometimes looking up, sometimes looking down
 - NEVER include people, characters, or humanoid figures in the image
 - The protagonist is implied through POV - they are never shown
-- Good: "A mysterious laboratory filled with glowing equipment, flickering monitors, quantum computers humming"
+- AVOID repeating the same central subject across scenes - if the last 3 images featured a tree, focus on something else: the sky, a path, flowers, an object, atmospheric lighting
+- Good: "Soft golden light filtering through silver willow leaves, tiny sparkles dancing in the sunbeams, extreme close-up with dreamy bokeh"
+- Good: "A worn leather map unfurled on mossy stones, mysterious symbols glowing faintly, fireflies illuminating the edges"
+- Bad: "A magical willow tree in a meadow" (too generic, will repeat endlessly)
 - Bad: "A Japanese male engineer standing in a laboratory" (NO PEOPLE!)
-- Even if meeting NPCs, show the environment/location, not the people
 
 # Long-Form Storytelling
 - Stories can span 50, 100, even 200+ scenes - there's NO RUSH
@@ -648,6 +652,7 @@ IMPORTANT: Avoid common tropes. Instead of overused elements like stolen jewels 
                 scene_number: s.scene_number,
                 narrative: s.narrative_text.substring(0, 400) + '...'
             })),
+            recent_image_prompts: recentScenes.slice(0, 5).map(s => s.image_prompt).filter(p => p),
             important_events: importantEvents.map(e => e.summary)
         };
 
@@ -707,6 +712,12 @@ Important guidelines:
 - Find NEW angles, NEW discoveries, or move the plot forward
 - Each scene should advance understanding or explore different aspects
 - Repeating the same revelatory moment kills engagement in long stories
+
+**IMAGE PROMPT VARIETY**
+- Check recent_image_prompts - your new image_prompt MUST focus on something DIFFERENT
+- If recent prompts show "tree", "willow", "meadow" - focus instead on: close-up of an object, light effects, sky/weather, a discovered item, atmospheric details
+- Vary composition: close-up macro shots, looking up at canopy, looking down at ground, wide landscape, detail of texture
+- The BEST image prompts capture a SPECIFIC MOMENT from the narrative (e.g., "golden light peeking from behind a silver leaf" not "magical tree")
 
 **ENDING THE STORY**
 Check the story arc's "Intended ending" - when player choices have brought them to the climactic moment described in the arc:
